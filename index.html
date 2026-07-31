@@ -210,17 +210,7 @@ button.primary{background:#38bdf8;color:#062033;border-color:transparent;font-we
 }
 
 
-.storm-arrow-icon{
-  background:transparent;
-  border:none;
-}
-.storm-arrow-icon div{
-  font-size:22px;
-  font-weight:900;
-  line-height:22px;
-  text-shadow:0 1px 3px rgba(0,0,0,.85);
-  transform-origin:center;
-}
+
 
 
 .legend-tabs{display:flex;gap:6px;margin:10px 0}
@@ -254,8 +244,8 @@ button.primary{background:#38bdf8;color:#062033;border-color:transparent;font-we
       <option value=".38">Radar 38%</option>
     </select>
     <select id="sensitivity" aria-label="Warning sensitivity">
-      <option value="strict" selected>Very high hail threshold</option>
-      <option value="veryStrict">Extreme hail threshold</option>
+      <option value="strict" selected>Balanced storm thresholds</option>
+      <option value="veryStrict">Strict storm thresholds</option>
     </select>
     <a class="youtube-link" href="https://www.youtube.com/@Global_Weather_Center/featured" target="_blank" rel="noopener noreferrer">
       <svg class="youtube-svg" viewBox="0 0 24 24" aria-hidden="true">
@@ -303,12 +293,12 @@ button.primary{background:#38bdf8;color:#062033;border-color:transparent;font-we
 </div>
 <div id="warn" class="legend-page active">
 <div class="legend-list">
-<div><span class="legend-swatch lightning-swatch"></span>Lightning</div>
+<div><span class="legend-swatch lightning-swatch"></span>Lightning warning</div>
 <div><span class="legend-swatch small-hail-swatch"></span>Small Hail</div>
 <div><span class="legend-swatch medium-hail-swatch"></span>Medium Hail</div>
 <div><span class="legend-swatch large-hail-swatch"></span>Large Hail</div>
 <div><span class="legend-swatch tornado-swatch"></span>Tornado Candidate</div>
-<div><span class="legend-arrow">➜</span>Storm Direction</div>
+
 </div>
 </div>
 <div id="radar" class="legend-page">
@@ -452,7 +442,7 @@ button.primary{background:#38bdf8;color:#062033;border-color:transparent;font-we
 
   async function analyseFrame(frame,z,tileX,tileY){
     const image=await loadTile(frame,z,tileX,tileY);
-    const threshold=sensitivityEl.value==='veryStrict'?238:226;
+    const threshold=sensitivityEl.value==='veryStrict'?216:204;
     const points=[];
     const step=5;
     for(let y=0;y<256;y+=step){
@@ -477,7 +467,7 @@ button.primary{background:#38bdf8;color:#062033;border-color:transparent;font-we
         cluster.points.push(point);
       }
     }
-    return clusters.filter(c=>c.n>=14).slice(0,6);
+    return clusters.filter(c=>c.n>=10).slice(0,8);
   }
 
   function matchPrevious(current,previous){
@@ -514,13 +504,18 @@ button.primary{background:#38bdf8;color:#062033;border-color:transparent;font-we
     return destination(lat,lon,bearing,distanceKm);
   }
 
-  function createDirectionalPolygon(lat,lon,bearing,widthKm,lengthKm){
-    const startLeft=offsetPoint(lat,lon,bearing-90,widthKm);
-    const startRight=offsetPoint(lat,lon,bearing+90,widthKm);
-    const end=destination(lat,lon,bearing,lengthKm);
-    const endLeft=offsetPoint(end[0],end[1],bearing-90,widthKm);
-    const endRight=offsetPoint(end[0],end[1],bearing+90,widthKm);
-    return [startLeft,startRight,endRight,endLeft];
+  function createWarningSquare(lat,lon,halfSizeKm){
+    const north=destination(lat,lon,0,halfSizeKm);
+    const east=destination(lat,lon,90,halfSizeKm);
+    const south=destination(lat,lon,180,halfSizeKm);
+    const west=destination(lat,lon,270,halfSizeKm);
+
+    return [
+      [north[0],west[1]],
+      [north[0],east[1]],
+      [south[0],east[1]],
+      [south[0],west[1]]
+    ];
   }
 
   async function reversePlace(lat,lon){
@@ -607,81 +602,108 @@ button.primary{background:#38bdf8;color:#062033;border-color:transparent;font-we
         const ll=pixelToLatLon(worldX,worldY,analysisZoom);
 
         const strict=sensitivityEl.value==='veryStrict';
+        const lightningDetected =
+          cluster.max >= (strict ? 220 : 210) &&
+          cluster.n >= 11;
+
         const hailType =
-          cluster.max >= (strict ? 252 : 248) ? 'Large hail' :
-          cluster.max >= (strict ? 246 : 240) ? 'Medium hail' :
-          cluster.max >= (strict ? 240 : 232) ? 'Small hail' :
+          cluster.max >= (strict ? 250 : 246) && cluster.n >= 18 ? 'Large hail' :
+          cluster.max >= (strict ? 238 : 232) && cluster.n >= 15 ? 'Medium hail' :
+          cluster.max >= (strict ? 226 : 218) && cluster.n >= 12 ? 'Small hail' :
           null;
 
-        if(!hailType) continue;
+        // Hail needs persistence in an earlier frame. Lightning can display
+        // from the latest intense convective core without this hail requirement.
+        const hailPersistent =
+          !!hailType &&
+          !!older &&
+          older.max >= (strict ? 214 : 206) &&
+          older.n >= 8;
 
-        // Require a matching strong core in an earlier frame so one noisy frame
-        // does not create a hail warning.
-        if(!older || older.max < (strict ? 228 : 220) || older.n < 10) continue;
-        const lengthKm=(hailType==='Large hail'?68:hailType==='Medium hail'?52:38)*Math.min(1.6,speedFactor);
-        const widthKm=hailType==='Large hail'?22:hailType==='Medium hail'?17:12;
-        const polygonPoints=createDirectionalPolygon(ll.lat,ll.lon,bearing,widthKm,lengthKm);
-        const hook=hasHookShape(cluster);
+        if(!lightningDetected && !hailPersistent) continue;
+        const boxHalfSizeKm =
+          hailType === 'Large hail' ? 24 :
+          hailType === 'Medium hail' ? 19 :
+          hailType === 'Small hail' ? 14 :
+          18;
 
-        const colour=hook?'#ff4fd8':(hailType==='Large hail'?'#ef4444':hailType==='Medium hail'?'#f97316':'#22c55e');
-        const title=hook?'TORNADO CANDIDATE':`${hailType.toUpperCase()} WARNING`;
-        const polygon=L.polygon(polygonPoints,{
-          color:colour,
-          weight:hook?8:7,
-          opacity:1,
-          fillColor:colour,
-          fillOpacity:.10,
-          pane:'warningPane',
-          lineJoin:'round'
-        }).addTo(warningLayer);
+        const polygonPoints=createWarningSquare(ll.lat,ll.lon,boxHalfSizeKm);
+        const hook=hasHookShape(cluster) && hailPersistent;
 
-        const dir=directionName(bearing);
-        polygon.bindTooltip(`${title} · moving ${dir}`,{sticky:true});
+        const warningsForCell=[];
 
-        polygon.on('click',async()=>{
-          polygon.bindPopup(`
-            <div class="warning-popup">
-              <b>${title}</b><br>
-              <span class="badge direction">Moving ${dir} (${Math.round(bearing)}°)</span><br>
-              <span class="badge experimental">EXPERIMENTAL</span><br><br>
-              Calculating places potentially impacted…
-            </div>
-          `).openPopup();
+        if(lightningDetected){
+          warningsForCell.push({
+            type:'Lightning warning',
+            colour:'#facc15',
+            sizeKm:18
+          });
+        }
 
-          const places=await impactedPlaces(ll.lat,ll.lon,bearing,lengthKm);
-          polygon.setPopupContent(`
-            <div class="warning-popup">
-              <b>${title}</b><br>
-              <span class="badge direction">Moving ${dir} (${Math.round(bearing)}°)</span><br>
-              <span class="badge experimental">NOT OFFICIAL</span><br><br>
-              <b>Potentially impacted places:</b><br>
-              ${places.length?places.map(p=>`• ${p}`).join('<br>'):'No nearby named places returned.'}<br><br>
-              Rough projected impact corridor based on persistent radar-core motion. Experimental only.
-            </div>
-          `);
-        });
+        if(hailPersistent && hailType){
+          warningsForCell.push({
+            type:`${hailType} warning`,
+            colour:
+              hailType==='Large hail' ? '#ef4444' :
+              hailType==='Medium hail' ? '#f97316' :
+              '#22c55e',
+            sizeKm:
+              hailType==='Large hail' ? 24 :
+              hailType==='Medium hail' ? 19 :
+              14
+          });
+        }
 
-        const arrowStart=destination(ll.lat,ll.lon,bearing,4);
-        const arrowEnd=destination(ll.lat,ll.lon,bearing,14);
+        if(hook){
+          warningsForCell.push({
+            type:'Tornado candidate',
+            colour:'#ff4fd8',
+            sizeKm:16
+          });
+        }
 
-        L.polyline([[arrowStart[0],arrowStart[1]],arrowEnd],{
-          color:colour,
-          weight:5,
-          opacity:.98,
-          pane:'warningPane',
-          lineCap:'round'
-        }).addTo(warningLayer);
+        for(const warning of warningsForCell){
+          const warningPoints=createWarningSquare(
+            ll.lat,
+            ll.lon,
+            warning.sizeKm
+          );
 
-        const arrowIcon=L.divIcon({
-          className:'storm-arrow-icon',
-          html:`<div style="color:${colour};transform:rotate(${bearing}deg)">➤</div>`,
-          iconSize:[22,22],
-          iconAnchor:[11,11]
-        });
-        L.marker(arrowEnd,{icon:arrowIcon,interactive:false,pane:'warningPane'}).addTo(warningLayer);
+          const polygon=L.polygon(warningPoints,{
+            color:warning.colour,
+            weight:8,
+            opacity:1,
+            fillColor:warning.colour,
+            fillOpacity:.10,
+            pane:'warningPane',
+            lineJoin:'round'
+          }).addTo(warningLayer);
 
+          polygon.bindTooltip(warning.type,{sticky:true});
 
-        issued.push(`${title} moving ${dir}`);
+          polygon.on('click',async()=>{
+            polygon.bindPopup(`
+              <div class="warning-popup">
+                <b>${warning.type.toUpperCase()}</b><br>
+                <span class="badge experimental">EXPERIMENTAL</span><br><br>
+                Finding nearby places…
+              </div>
+            `).openPopup();
+
+            const places=await impactedPlaces(ll.lat,ll.lon,bearing,35);
+            polygon.setPopupContent(`
+              <div class="warning-popup">
+                <b>${warning.type.toUpperCase()}</b><br>
+                <span class="badge experimental">NOT OFFICIAL</span><br><br>
+                <b>Nearby places:</b><br>
+                ${places.length?places.map(p=>`• ${p}`).join('<br>'):'No nearby named places returned.'}<br><br>
+                Box shows the rough detected storm-core area, not a forecast path.
+              </div>
+            `);
+          });
+
+          issued.push(warning.type);
+        }
       }
 
       document.getElementById('summary').innerHTML=issued.length

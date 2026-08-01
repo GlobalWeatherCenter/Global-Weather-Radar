@@ -2684,6 +2684,19 @@ button[aria-label="Legend"],
     const product=document.getElementById('gwrSiteProduct')?.value || 'N0B';
     const label=product==='N0U'?'Hi-Res Velocity':'Hi-Res Reflectivity';
 
+    // Single-site mode must replace the global RainViewer radar completely.
+    clearInterval(timer);
+
+    if(radarNextLayer && map.hasLayer(radarNextLayer)){
+      map.removeLayer(radarNextLayer);
+    }
+    radarNextLayer=null;
+
+    if(radarLayer && map.hasLayer(radarLayer)){
+      map.removeLayer(radarLayer);
+    }
+    radarLayer=null;
+
     gwrClearSingleSiteRadar();
 
     const url=`https://mesonet.agron.iastate.edu/cgi-bin/wms/nexrad/ridge.cgi?sector=${encodeURIComponent(site.id)}&prod=${encodeURIComponent(product)}&cb=${Date.now()}`;
@@ -4372,6 +4385,17 @@ function startAnimation(){
     gwrSourceControl.addEventListener('change',()=>{
       if(gwrSourceControl.value==='nexrad'){
         gwrSiteMode=true;
+
+        clearInterval(timer);
+        if(radarNextLayer && map.hasLayer(radarNextLayer)){
+          map.removeLayer(radarNextLayer);
+        }
+        radarNextLayer=null;
+        if(radarLayer && map.hasLayer(radarLayer)){
+          map.removeLayer(radarLayer);
+        }
+        radarLayer=null;
+
         if(gwrProductWrap) gwrProductWrap.classList.remove('hidden');
         if(!map.hasLayer(gwrSiteLayer)) gwrSiteLayer.addTo(map);
         map.setView([38.5,-97.5],4);
@@ -4408,6 +4432,17 @@ function startAnimation(){
   // Force site mode after all other initialization.
   setTimeout(()=>{
     gwrSiteMode=true;
+
+    clearInterval(timer);
+    if(radarNextLayer && map.hasLayer(radarNextLayer)){
+      map.removeLayer(radarNextLayer);
+    }
+    radarNextLayer=null;
+    if(radarLayer && map.hasLayer(radarLayer)){
+      map.removeLayer(radarLayer);
+    }
+    radarLayer=null;
+
     if(gwrSourceControl) gwrSourceControl.value='nexrad';
     if(gwrProductWrap) gwrProductWrap.classList.remove('hidden');
     if(!map.hasLayer(gwrSiteLayer)) gwrSiteLayer.addTo(map);

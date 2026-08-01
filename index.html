@@ -2297,183 +2297,93 @@ button[aria-label="Legend"],
 }
 
 
-/* ===== V82 ROBUST SITE RADAR ===== */
-#gwrSiteProductControl{
-  position:absolute;
-  left:14px;
-  bottom:14px;
-  z-index:25000;
-}
-#gwrSiteProduct{
-  height:40px;
-  min-width:170px;
-  border:1px solid #475569;
-  border-radius:9px;
-  background:rgba(8,20,38,.97);
-  color:#fff;
-  padding:0 34px 0 10px;
-  font-size:11.5px;
-  font-weight:800;
-  box-shadow:0 5px 16px rgba(0,0,0,.35);
-}
-#gwrSiteProductControl.hidden{display:none!important}
-
-#gwrWeatherKey{
-  right:14px!important;
-  left:auto!important;
-  overflow:visible!important;
-}
-#gwrWeatherKeyClose{
-  position:absolute!important;
-  top:6px!important;
-  right:7px!important;
-  width:30px!important;
-  height:30px!important;
-  display:flex!important;
-  align-items:center!important;
-  justify-content:center!important;
-  padding:0!important;
-  border:1px solid #94a3b8!important;
-  border-radius:8px!important;
-  background:#17243a!important;
-  color:#fff!important;
-  font-size:21px!important;
-  font-weight:900!important;
-  line-height:1!important;
-  z-index:999999!important;
-}
-#gwrWeatherKey .gwr-key-title{padding-right:34px!important}
-
-.leaflet-gwr-sites-pane{
-  z-index:760!important;
-  pointer-events:auto!important;
-}
-.gwr-site-tooltip{
-  background:rgba(8,20,38,.97)!important;
-  color:#fff!important;
-  border:1px solid #475569!important;
-  border-radius:6px!important;
-  font-size:10px!important;
-  font-weight:800!important;
-  padding:3px 6px!important;
-}
-.gwr-site-tooltip:before{display:none!important}
-
-
-/* ===== V86 MOVABLE + RESIZABLE TOOL WINDOWS ===== */
-#gwrDrawPanel,
-#gwrLayersPanel,
-#gwrMeasurePanel{
+/* ===== V73 USA NEXRAD SITE RADAR ===== */
+#gwrNexradPanel{
+  display:none;
   position:fixed!important;
   left:22%!important;
   top:47%!important;
   right:auto!important;
   bottom:auto!important;
   transform:translate(-50%,-50%)!important;
+  z-index:27500!important;
   width:310px;
-  min-width:210px!important;
-  min-height:110px!important;
-  max-width:calc(100vw - 24px)!important;
-  max-height:calc(100vh - 24px)!important;
-  overflow:auto!important;
-  resize:none!important;
-  box-sizing:border-box!important;
-  touch-action:none;
-}
-
-#gwrLayersPanel{
-  width:330px;
-  min-height:250px!important;
-}
-
-#gwrDrawPanel{
-  width:320px;
-  min-height:170px!important;
-}
-
-#gwrMeasurePanel{
-  width:280px;
-  min-height:135px!important;
-}
-
-.gwr-layers-head,
-.gwr-draw-head,
-.gwr-measure-head{
-  cursor:move!important;
-  touch-action:none!important;
-  user-select:none!important;
-  -webkit-user-select:none!important;
-}
-
-.gwr-resize-handle{
-  position:absolute;
-  right:3px;
-  bottom:3px;
-  width:24px;
-  height:24px;
-  z-index:50;
-  cursor:nwse-resize;
-  touch-action:none;
-  border-right:3px solid rgba(255,255,255,.60);
-  border-bottom:3px solid rgba(255,255,255,.60);
-  border-radius:0 0 7px 0;
+  max-width:calc(100vw - 28px);
+  max-height:calc(100vh - 36px);
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
   box-sizing:border-box;
-}
-
-.gwr-resize-handle:before{
-  content:'';
-  position:absolute;
-  right:5px;
-  bottom:5px;
-  width:9px;
-  height:9px;
-  border-right:2px solid rgba(255,255,255,.40);
-  border-bottom:2px solid rgba(255,255,255,.40);
-}
-
-/* Keep the resize corner clear of panel content */
-#gwrDrawPanel,
-#gwrLayersPanel,
-#gwrMeasurePanel{
-  padding-bottom:30px!important;
-}
-
-@media(max-width:900px){
-  #gwrDrawPanel,
-  #gwrLayersPanel,
-  #gwrMeasurePanel{
-    left:24%!important;
-    top:48%!important;
-  }
-}
-
-
-/* ===== V88 EXPLICIT REFLECTIVITY / VELOCITY BUTTONS ===== */
-#gwrSiteProductControl{
-  display:flex!important;
-  gap:6px!important;
-  align-items:center!important;
-  left:14px!important;
-  bottom:14px!important;
-  z-index:25000!important;
-}
-#gwrSiteProductControl.hidden{
-  display:none!important;
-}
-.gwr-product-btn{
-  height:40px;
-  border:1px solid #475569;
-  border-radius:9px;
-  background:rgba(8,20,38,.96);
+  padding:11px;
+  border:1px solid #334155;
+  border-radius:13px;
+  background:rgba(8,20,38,.97);
   color:#fff;
-  padding:0 12px;
-  font-size:11.5px;
-  font-weight:800;
-  box-shadow:0 5px 16px rgba(0,0,0,.35);
+  box-shadow:0 10px 30px rgba(0,0,0,.45);
+  font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
 }
-.gwr-product-btn.active{
-  background:#2563eb!important;
-  border-color:#60a5fa!important;
+#gwrNexradPanel.open{display:block}
+.gwr-nexrad-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:9px;
+}
+#gwrNexradX{
+  width:30px;height:30px;
+  border:1px solid #475569;
+  border-radius:8px;
+  background:#17243a;
+  color:#fff;
+  font-size:19px;
+}
+.gwr-nexrad-field{
+  display:grid;
+  grid-template-columns:95px 1fr;
+  gap:8px;
+  align-items:center;
+  margin:7px 0;
+  padding:7px;
+  background:#111f34;
+  border:1px solid #263850;
+  border-radius:8px;
+  font-size:11.5px;
+}
+.gwr-nexrad-field select{
+  width:100%;
+  min-width:0;
+  height:32px;
+  border:1px solid #475569;
+  border-radius:7px;
+  background:#17243a;
+  color:#fff;
+  padding:0 7px;
+}
+.gwr-nexrad-actions{
+  display:flex;
+  gap:7px;
+  margin-top:9px;
+}
+.gwr-nexrad-actions button{
+  flex:1;
+  min-height:34px;
+  border:1px solid #475569;
+  border-radius:7px;
+  background:#17243a;
+  color:#fff;
+  font-weight:800;
+}
+#gwrNexradStatus{
+  margin-top:9px;
+  padding:8px;
+  border-radius:8px;
+  background:#111f34;
+  border:1px solid #263850;
+  font-size:10.5px;
+  line-height:1.35;
+}
+@media(max-width:900px){
+  #gwrNexradPanel{left:24%!important;top:48%!important;}
 }
 
 </style>
@@ -2502,9 +2412,9 @@ button[aria-label="Legend"],
       <option value="light">Map: Light</option>
       <option value="dark" selected>Map: Dark Matter</option>
     </select>
-    <select id="radarSource" aria-label="Radar source">
-      <option value="nexrad" selected>USA Site Radar</option>
-      <option value="global">Global Radar</option>
+    <select id="radarSource" aria-label="Radar source" title="Radar source">
+      <option value="global" selected>Source: Global</option>
+      <option value="nexrad">Source: USA NEXRAD</option>
     </select>
     <select id="radarColour" aria-label="Radar colour table" title="Radar colour table">
       <option value="universal" selected>Radar: Universal Blue</option>
@@ -2524,17 +2434,11 @@ button[aria-label="Legend"],
 </svg>
       <span>Global Weather Center</span>
     </a>
-    <span id="status" class="status">USA NEXRAD — tap a radar circle</span>
+    <span id="status" class="status">Loading global radar…</span>
   </div>
 </header>
 <div id="map"></div>
-<div id="gwrSiteProductControl">
-  <button id="gwrReflectivityBtn" class="gwr-product-btn active" type="button">Hi-Res Reflectivity</button>
-  <button id="gwrVelocityBtn" class="gwr-product-btn" type="button">Hi-Res Velocity</button>
-</div>
 <div id="gwrWeatherKey">
-  <button id="gwrWeatherKeyClose" type="button" aria-label="Close weather key">×</button>
-
   <div class="gwr-key-title">Weather key</div>
   <div class="gwr-key-subtitle">Radar detected</div>
   <div class="gwr-key-row"><span class="gwr-key-swatch key-lightning"></span><span>Lightning likelihood</span></div>
@@ -2610,14 +2514,54 @@ button[aria-label="Legend"],
     <div id="gwrSpcStatus" class="gwr-spc-status">Tap a layer to load the latest SPC polygons.</div>
 
     <div class="gwr-layer-section-title">Official NWS warnings</div>
-    <div id="nwsWarningsStatus" class="gwr-spc-status">
-      Tornado and Severe Thunderstorm Warnings are added automatically in USA Site Radar mode.
+    <div class="gwr-layer-list">
+      <label class="gwr-layer-row">
+        <input type="checkbox" id="nwsTornadoToggle">
+        <span>NWS Tornado Warnings</span>
+      </label>
+      <label class="gwr-layer-row">
+        <input type="checkbox" id="nwsSevereToggle">
+        <span>NWS Severe T-Storm Warnings</span>
+      </label>
     </div>
-    <div class="gwr-resize-handle" aria-hidden="true"></div>
+    <div id="nwsWarningsStatus" class="gwr-spc-status">
+      Warning overlays are separate from SPC outlooks.
+    </div>
 
   </div>
 </div>
 
+
+
+<div id="gwrNexradPanel" aria-hidden="true">
+  <div class="gwr-nexrad-head">
+    <strong>USA NEXRAD site radar</strong>
+    <button id="gwrNexradX" type="button" aria-label="Close NEXRAD panel">×</button>
+  </div>
+
+  <label class="gwr-nexrad-field">
+    <span>Radar site</span>
+    <select id="gwrNexradSite">
+      <option value="">Loading sites…</option>
+    </select>
+  </label>
+
+  <label class="gwr-nexrad-field">
+    <span>Product</span>
+    <select id="gwrNexradProduct">
+      <option value="N0B">Base Reflectivity</option>
+      <option value="N0U">Base Velocity</option>
+    </select>
+  </label>
+
+  <div class="gwr-nexrad-actions">
+    <button id="gwrNexradRefresh" type="button">Refresh</button>
+    <button id="gwrNexradGlobal" type="button">Back to Global</button>
+  </div>
+
+  <div id="gwrNexradStatus">Choose a radar site.</div>
+  <small>Current single-site Level III imagery via Iowa Environmental Mesonet.</small>
+</div>
 
 <div id="gwrMeasureTool">
   <button id="gwrMeasureButton" type="button" aria-label="Measure distance" title="Measure distance">↔</button>
@@ -2631,7 +2575,6 @@ button[aria-label="Legend"],
       <button id="gwrMeasureClear" type="button">Clear</button>
       <button id="gwrMeasureDone" type="button">Done</button>
     </div>
-    <div class="gwr-resize-handle" aria-hidden="true"></div>
   </div>
 </div>
 
@@ -2663,7 +2606,6 @@ button[aria-label="Legend"],
       <b>Done</b> keeps the drawing visible and returns to the radar.<br>
       <b>×</b> removes the drawing and closes the tool.
     </div>
-    <div class="gwr-resize-handle" aria-hidden="true"></div>
   </div>
 </div>
 
@@ -2675,274 +2617,6 @@ button[aria-label="Legend"],
 <script>
 (() => {
   const map=window.gwrMap=L.map('map',{zoomControl:true,minZoom:2,maxZoom:18,worldCopyJump:true}).setView([30,0],3);
-  // ===== V82 USA SITE RADAR: built-in, no station-list API required =====
-  if(!map.getPane('gwrSitesPane')){
-    map.createPane('gwrSitesPane');
-    map.getPane('gwrSitesPane').style.zIndex='760';
-    map.getPane('gwrSitesPane').style.pointerEvents='auto';
-  }
-
-  const gwrBuiltInSites=[
-    ['ATX','Seattle',48.195,-122.496],['RTX','Portland',45.715,-122.965],
-    ['MTR','San Francisco Bay',37.721,-122.005],['VTX','Los Angeles / Ventura',34.412,-119.179],
-    ['NKX','San Diego',32.919,-117.042],['HNX','San Joaquin Valley',36.314,-119.632],
-    ['BHX','Eureka',40.498,-124.292],['MAX','Medford',42.081,-122.717],
-    ['OTX','Spokane',47.680,-117.626],['PDT','Pendleton',45.691,-118.853],
-    ['PSR','Phoenix',33.290,-111.670],['EMX','Tucson',31.894,-110.630],
-    ['ESX','Las Vegas',35.701,-114.891],['RGX','Reno',39.754,-119.462],
-    ['ABX','Albuquerque',35.150,-106.824],['FDX','Cannon AFB',34.635,-103.630],
-    ['HDX','Holloman AFB',33.077,-106.120],['GJX','Grand Junction',39.062,-108.214],
-    ['BOU','Denver',40.000,-105.250],['PUX','Pueblo',38.459,-104.181],
-    ['CYS','Cheyenne',41.152,-104.806],['RIW','Riverton',43.066,-108.477],
-    ['SLC','Salt Lake City',40.748,-112.110],['MTX','Salt Lake City North',41.263,-112.448],
-    ['ICX','Cedar City',37.591,-112.862],['CBX','Boise',43.491,-116.236],
-    ['TFX','Great Falls',47.460,-111.385],['BLX','Billings',45.853,-108.607],
-    ['GGW','Glasgow',48.207,-106.625],['MSX','Missoula',47.041,-113.986],
-    ['BIS','Bismarck',46.771,-100.761],['MBX','Minot',48.393,-100.864],
-    ['MVX','Fargo',47.528,-97.326],['ABR','Aberdeen',45.455,-98.413],
-    ['UDX','Rapid City',44.125,-102.830],['FSD','Sioux Falls',43.588,-96.729],
-    ['MPX','Minneapolis',44.849,-93.566],['DLH','Duluth',46.837,-92.210],
-    ['ARX','La Crosse',43.823,-91.191],['GRB','Green Bay',44.498,-88.111],
-    ['MKX','Milwaukee',42.967,-88.551],['LOT','Chicago',41.605,-88.085],
-    ['ILX','Lincoln IL',40.151,-89.337],['IND','Indianapolis',39.708,-86.280],
-    ['IWX','Northern Indiana',41.359,-85.700],['DTX','Detroit',42.700,-83.472],
-    ['APX','Gaylord',44.907,-84.720],['GRR','Grand Rapids',42.894,-85.545],
-    ['DMX','Des Moines',41.731,-93.723],['DVN','Quad Cities',41.612,-90.581],
-    ['OAX','Omaha',41.320,-96.367],['UEX','Hastings',40.321,-98.442],
-    ['GLD','Goodland',39.367,-101.700],['DDC','Dodge City',37.761,-99.969],
-    ['ICT','Wichita',37.654,-97.443],['TWX','Topeka',38.997,-96.232],
-    ['EAX','Kansas City',38.810,-94.264],['SGF','Springfield MO',37.236,-93.401],
-    ['LSX','St Louis',38.699,-90.683],['TLX','Oklahoma City / Norman',35.333,-97.278],
-    ['INX','Tulsa',36.175,-95.565],['VNX','Vance AFB',36.741,-98.128],
-    ['FDR','Frederick',34.362,-98.976],['AMA','Amarillo',35.233,-101.709],
-    ['LBB','Lubbock',33.654,-101.814],['MAF','Midland',31.943,-102.189],
-    ['EPZ','El Paso',31.873,-106.698],['FWS','Dallas / Fort Worth',32.573,-97.303],
-    ['GRK','Fort Hood',30.722,-97.383],['EWX','Austin / San Antonio',29.704,-98.029],
-    ['HGX','Houston',29.472,-95.079],['CRP','Corpus Christi',27.784,-97.511],
-    ['BRO','Brownsville',25.916,-97.419],['LCH','Lake Charles',30.125,-93.216],
-    ['LIX','New Orleans',30.337,-89.825],['SHV','Shreveport',32.451,-93.841],
-    ['POE','Fort Polk',31.155,-92.976],['DGX','Jackson MS',32.280,-89.984],
-    ['GWX','Columbus AFB',33.896,-88.329],['HTX','Huntsville',34.931,-86.084],
-    ['BMX','Birmingham',33.172,-86.770],['MOB','Mobile',30.679,-88.240],
-    ['EOX','Fort Rucker',31.461,-85.459],['FFC','Atlanta',33.364,-84.566],
-    ['JGX','Robins AFB',32.675,-83.351],['VAX','Valdosta',30.890,-83.002],
-    ['TLH','Tallahassee',30.398,-84.329],['JAX','Jacksonville',30.485,-81.702],
-    ['MLB','Melbourne',28.113,-80.654],['TBW','Tampa Bay',27.706,-82.402],
-    ['AMX','Miami',25.611,-80.413],['BYX','Key West',24.597,-81.703],
-    ['CLX','Charleston SC',32.656,-81.043],['CAE','Columbia SC',33.949,-81.119],
-    ['GSP','Greenville-Spartanburg',34.883,-82.220],['FCX','Roanoke',37.025,-80.274],
-    ['LWX','Washington DC',38.976,-77.487],['AKQ','Wakefield VA',36.984,-77.008],
-    ['RAX','Raleigh',35.665,-78.490],['MHX','Morehead City',34.776,-76.876],
-    ['LTX','Wilmington NC',33.989,-78.429],['CCX','State College',40.923,-78.004],
-    ['PBZ','Pittsburgh',40.532,-80.218],['DIX','Philadelphia',39.947,-74.411],
-    ['DOX','Dover',38.826,-75.440],['OKX','New York City',40.866,-72.864],
-    ['BOX','Boston',41.956,-71.137],['ENX','Albany',42.586,-74.064],
-    ['BGM','Binghamton',42.200,-75.985],['BUF','Buffalo',42.949,-78.737],
-    ['TYX','Fort Drum',43.756,-75.680],['GYX','Portland ME',43.891,-70.256],
-    ['CBW','Caribou',46.039,-67.806],['JKL','Jackson KY',37.591,-83.314],
-    ['LVX','Louisville',37.975,-85.944],['PAH','Paducah',37.068,-88.772],
-    ['OHX','Nashville',36.247,-86.563],['MRX','Knoxville',36.169,-83.402],
-    ['NQA','Memphis',35.345,-89.873],['MEG','Memphis area',35.149,-90.015]
-  ].map(x=>({id:x[0],name:x[1],lat:x[2],lon:x[3]}));
-
-  const gwrSiteLayer=L.layerGroup().addTo(map);
-  let gwrSelectedSiteId='';
-  let gwrSingleSiteRadarLayer=null;
-  let gwrSiteMode=true;
-  let gwrSiteProductCode='SR_BREF';
-
-  function gwrRenderBuiltInSites(){
-    gwrSiteLayer.clearLayers();
-
-    for(const site of gwrBuiltInSites){
-      const selected=site.id===gwrSelectedSiteId;
-      const marker=L.circleMarker([site.lat,site.lon],{
-        pane:'gwrSitesPane',
-        radius:selected?8:6.5,
-        weight:selected?3:2,
-        color:'#ffffff',
-        fillColor:selected?'#ef4444':'#2563eb',
-        fillOpacity:1,
-        interactive:true,
-        bubblingMouseEvents:false
-      });
-
-      marker.bindTooltip(
-        `${site.id} — ${site.name}`,
-        {direction:'top',offset:[0,-7],opacity:1,className:'gwr-site-tooltip'}
-      );
-
-      marker.on('click',()=>{
-        gwrSelectedSiteId=site.id;
-        gwrRenderBuiltInSites();
-        gwrLoadSingleSite(site,true);
-      });
-
-      marker.addTo(gwrSiteLayer);
-    }
-  }
-
-  function gwrClearSingleSiteRadar(){
-    if(gwrSingleSiteRadarLayer && map.hasLayer(gwrSingleSiteRadarLayer)){
-      map.removeLayer(gwrSingleSiteRadarLayer);
-    }
-    gwrSingleSiteRadarLayer=null;
-  }
-
-  
-  function gwrPurgeGlobalRainViewer(){
-    clearInterval(timer);
-
-    map.eachLayer(layer=>{
-      const url=String(layer?._url || '');
-      const attribution=String(layer?.options?.attribution || '');
-
-      if(
-        url.includes('rainviewer.com') ||
-        attribution.toLowerCase().includes('rainviewer')
-      ){
-        try{ map.removeLayer(layer); }catch(error){}
-      }
-    });
-
-    if(radarNextLayer && map.hasLayer(radarNextLayer)){
-      map.removeLayer(radarNextLayer);
-    }
-    radarNextLayer=null;
-
-    if(radarLayer && map.hasLayer(radarLayer)){
-      map.removeLayer(radarLayer);
-    }
-    radarLayer=null;
-  }
-
-function gwrLoadSingleSite(site,zoomToSite){
-    const product=gwrSiteProductCode || 'SR_BREF';
-    const label=product==='SR_BVEL'
-      ? 'Super-Res Velocity (SR_BVEL)'
-      : 'Super-Res Reflectivity (SR_BREF)';
-
-    gwrSiteMode=true;
-    gwrPurgeGlobalRainViewer();
-
-    const siteRadarPane=map.getPane('radarPane');
-    if(siteRadarPane){
-      siteRadarPane.style.filter='none';
-    }
-
-    gwrClearSingleSiteRadar();
-
-    // NOAA/NCEP OpenGeo uses the full four-character NEXRAD ID
-    // as the GeoServer workspace, e.g. TLX -> KTLX -> /geoserver/ktlx/wms.
-    const fullSiteId=site.id.length===3 ? `K${site.id}` : site.id;
-    const workspace=fullSiteId.toLowerCase();
-    const noaaWms=`https://opengeo.ncep.noaa.gov/geoserver/${workspace}/wms`;
-
-    // Official warnings are automatic in single-site radar mode.
-    if(typeof gwrEnableAutoNwsWarnings==='function'){
-      gwrEnableAutoNwsWarnings();
-    }
-
-    // Official NOAA/NCEP product:
-    // SR_BREF = Super Resolution Base Reflectivity
-    // SR_BVEL = Super Resolution Base Radial Velocity
-    gwrSingleSiteRadarLayer=L.tileLayer.wms(noaaWms,{
-      layers:product,
-      styles:'',
-      format:'image/png',
-      transparent:true,
-      version:'1.1.1',
-      tileSize:256,
-      minZoom:3,
-      maxZoom:18,
-      keepBuffer:6,
-      updateWhenZooming:false,
-      updateWhenIdle:true,
-      opacity:Number(document.getElementById('opacity')?.value || .72),
-      pane:'radarPane',
-      attribution:'Radar © NOAA / NCEP'
-    }).addTo(map);
-
-    // Ensure the actual requested product is visible in the tile request.
-    gwrSingleSiteRadarLayer.setParams({
-      layers:product,
-      gwr:Date.now()
-    },false);
-
-    let tileErrors=0;
-    let loaded=false;
-
-    gwrSingleSiteRadarLayer.on('loading',()=>{
-      const st=document.getElementById('status');
-      if(st) st.textContent=`${fullSiteId} — loading ${label} from NOAA…`;
-    });
-
-    gwrSingleSiteRadarLayer.on('load',()=>{
-      loaded=true;
-      const st=document.getElementById('status');
-      if(st) st.textContent=`${fullSiteId} — ${label}`;
-    });
-
-    gwrSingleSiteRadarLayer.on('tileerror',()=>{
-      tileErrors++;
-
-      // If NOAA OpenGeo is temporarily unavailable for this site/product,
-      // fall back to IEM's current single-site Level III feed.
-      if(!loaded && tileErrors===6){
-        try{
-          if(gwrSingleSiteRadarLayer && map.hasLayer(gwrSingleSiteRadarLayer)){
-            map.removeLayer(gwrSingleSiteRadarLayer);
-          }
-        }catch(error){}
-
-        const iemProduct=product==='SR_BVEL' ? 'N0U' : 'N0B';
-        const iemUrl=
-          `https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0/` +
-          `ridge::${site.id}-${iemProduct}-0/{z}/{x}/{y}.png`;
-
-        gwrSingleSiteRadarLayer=L.tileLayer(iemUrl,{
-          tileSize:256,
-          minZoom:3,
-          maxZoom:18,
-          maxNativeZoom:12,
-          keepBuffer:6,
-          updateWhenZooming:false,
-          updateWhenIdle:true,
-          opacity:Number(document.getElementById('opacity')?.value || .72),
-          pane:'radarPane',
-          attribution:'Radar fallback © Iowa Environmental Mesonet'
-        }).addTo(map);
-
-        const st=document.getElementById('status');
-        if(st) st.textContent=`${fullSiteId} — NOAA unavailable, trying ${iemProduct} fallback…`;
-
-        gwrSingleSiteRadarLayer.on('load',()=>{
-          const s=document.getElementById('status');
-          if(s) s.textContent=`${fullSiteId} — ${label} (IEM fallback)`;
-        });
-
-        gwrSingleSiteRadarLayer.on('tileerror',()=>{
-          const s=document.getElementById('status');
-          if(s) s.textContent=`${fullSiteId} — ${label} failed from both NOAA and IEM.`;
-        });
-      }
-    });
-
-    if(zoomToSite){
-      map.setView([site.lat,site.lon],8,{animate:false});
-    }
-
-    const st=document.getElementById('status');
-    if(st) st.textContent=`${fullSiteId} — loading ${label} from NOAA…`;
-  }
-
-  // Render dots synchronously: no API request, no delay.
-  gwrRenderBuiltInSites();
-  map.setView([38.5,-97.5],4);
-
-  window.gwrBuiltInSites=gwrBuiltInSites;
-  window.gwrSiteLayer=gwrSiteLayer;
-
   
   map.getPane('tilePane').style.zIndex='200';
   map.createPane('radarPane');
@@ -3133,6 +2807,20 @@ function gwrLoadSingleSite(site,zoomToSite){
   const status=document.getElementById('status');
   const opacityEl=document.getElementById('opacity');
   const radarColourEl=document.getElementById('radarColour');
+  const radarSourceEl=document.getElementById('radarSource');
+  const gwrNexradPanel=document.getElementById('gwrNexradPanel');
+  const gwrNexradSite=document.getElementById('gwrNexradSite');
+  const gwrNexradProduct=document.getElementById('gwrNexradProduct');
+  const gwrNexradX=document.getElementById('gwrNexradX');
+  const gwrNexradRefresh=document.getElementById('gwrNexradRefresh');
+  const gwrNexradGlobal=document.getElementById('gwrNexradGlobal');
+  const gwrNexradStatus=document.getElementById('gwrNexradStatus');
+
+  let gwrRadarMode='global';
+  let gwrNexradLayer=null;
+  let gwrNexradStations=[];
+  let gwrNexradRefreshTimer=null;
+
   let displayRadarColour=localStorage.getItem('gwrRadarColour') || 'universal';
 
   const radarColourFilters={
@@ -3256,20 +2944,6 @@ const basemapEl=document.getElementById('basemap');
   }
 
   function showFrame(i){
-    // V84: USA Site Radar mode must NEVER display the global RainViewer layer.
-    if(typeof gwrSiteMode!=='undefined' && gwrSiteMode){
-      if(radarNextLayer && map.hasLayer(radarNextLayer)){
-        map.removeLayer(radarNextLayer);
-      }
-      radarNextLayer=null;
-
-      if(radarLayer && map.hasLayer(radarLayer)){
-        map.removeLayer(radarLayer);
-      }
-      radarLayer=null;
-      return;
-    }
-
     if(!frames.length)return;
 
     const newIndex=Math.max(0,Math.min(i,frames.length-1));
@@ -3361,12 +3035,197 @@ const basemapEl=document.getElementById('basemap');
   }
 
   applyRadarColour();
-function startAnimation(){
-    if(typeof gwrSiteMode!=='undefined' && gwrSiteMode){
-      clearInterval(timer);
+
+  async function gwrLoadNexradStations(){
+    try{
+      const response=await fetch(
+        'https://mesonet.agron.iastate.edu/geojson/network.py?network=NEXRAD&only_online=1',
+        {cache:'no-store'}
+      );
+      if(!response.ok) throw new Error(`Station list ${response.status}`);
+
+      const data=await response.json();
+      const features=Array.isArray(data.features)?data.features:[];
+
+      gwrNexradStations=features.map(feature=>{
+        const p=feature.properties||{};
+        const c=feature.geometry?.coordinates||[];
+        return {
+          id:String(p.sid||p.id||p.station||'').replace(/^K/,'').toUpperCase(),
+          name:p.sname||p.name||p.station_name||'',
+          lon:Number(c[0]),
+          lat:Number(c[1])
+        };
+      }).filter(s=>s.id && Number.isFinite(s.lat) && Number.isFinite(s.lon))
+        .sort((a,b)=>(a.name||a.id).localeCompare(b.name||b.id));
+
+      if(!gwrNexradStations.length) throw new Error('No sites returned');
+
+      gwrNexradSite.innerHTML='';
+      for(const station of gwrNexradStations){
+        const option=document.createElement('option');
+        option.value=station.id;
+        option.textContent=`${station.id} — ${station.name||'NEXRAD'}`;
+        gwrNexradSite.appendChild(option);
+      }
+
+      const preferred=['TLX','DMX','FFC','LOT','GRR'];
+      const pick=preferred.find(id=>gwrNexradStations.some(s=>s.id===id));
+      if(pick) gwrNexradSite.value=pick;
+
+      gwrNexradStatus.textContent='Select a site and product.';
+    }catch(error){
+      console.error('NEXRAD station list failed',error);
+
+      const fallback=[
+        ['TLX','Oklahoma City / Norman',35.333,-97.278],
+        ['DMX','Des Moines',41.731,-93.723],
+        ['FFC','Atlanta',33.364,-84.566],
+        ['LOT','Chicago',41.605,-88.085],
+        ['GRR','Grand Rapids',42.894,-85.545],
+        ['LIX','New Orleans',30.337,-89.825],
+        ['FWS','Dallas / Fort Worth',32.573,-97.303],
+        ['HGX','Houston',29.472,-95.079],
+        ['TBW','Tampa Bay',27.706,-82.402],
+        ['BOX','Boston',41.956,-71.137]
+      ];
+      gwrNexradStations=fallback.map(([id,name,lat,lon])=>({id,name,lat,lon}));
+      gwrNexradSite.innerHTML='';
+      for(const station of gwrNexradStations){
+        const option=document.createElement('option');
+        option.value=station.id;
+        option.textContent=`${station.id} — ${station.name}`;
+        gwrNexradSite.appendChild(option);
+      }
+      gwrNexradSite.value='TLX';
+      gwrNexradStatus.textContent='Using fallback radar-site list.';
+    }
+  }
+
+  function gwrRemoveNexradLayer(){
+    if(gwrNexradLayer && map.hasLayer(gwrNexradLayer)) map.removeLayer(gwrNexradLayer);
+    gwrNexradLayer=null;
+  }
+
+  function gwrPauseGlobalForNexrad(){
+    clearInterval(timer);
+    playing=false;
+    const playControl=document.getElementById('play');
+    if(playControl) playControl.textContent='Play';
+
+    if(radarNextLayer && map.hasLayer(radarNextLayer)) map.removeLayer(radarNextLayer);
+    radarNextLayer=null;
+
+    if(radarLayer && map.hasLayer(radarLayer)) map.removeLayer(radarLayer);
+  }
+
+  function gwrShowNexradRadar(zoomToSite=true){
+    const siteId=gwrNexradSite.value;
+    const product=gwrNexradProduct.value || 'N0B';
+    const station=gwrNexradStations.find(s=>s.id===siteId);
+
+    if(!siteId){
+      gwrNexradStatus.textContent='Choose a radar site first.';
       return;
     }
 
+    gwrRadarMode='nexrad';
+    radarSourceEl.value='nexrad';
+    gwrPauseGlobalForNexrad();
+    gwrRemoveNexradLayer();
+
+    // IEM RIDGE WMS: sector is the 3-character NEXRAD ID and prod is the
+    // Level III product. N0B = base reflectivity; N0U = base velocity.
+    const wmsUrl=`https://mesonet.agron.iastate.edu/cgi-bin/wms/nexrad/ridge.cgi?sector=${encodeURIComponent(siteId)}&prod=${encodeURIComponent(product)}&cb=${Date.now()}`;
+
+    gwrNexradLayer=L.tileLayer.wms(wmsUrl,{
+      layers:'single',
+      format:'image/png',
+      transparent:true,
+      version:'1.1.1',
+      opacity:Number(opacityEl.value),
+      pane:'radarPane',
+      attribution:'NEXRAD imagery © Iowa Environmental Mesonet'
+    });
+
+    const label=product==='N0U'?'Base Velocity':'Base Reflectivity';
+
+    gwrNexradLayer.on('loading',()=>{
+      gwrNexradStatus.textContent=`Loading ${siteId} ${label}…`;
+      status.textContent=`USA NEXRAD: ${siteId} — ${label}`;
+    });
+
+    gwrNexradLayer.on('load',()=>{
+      gwrNexradStatus.textContent=`${siteId} ${label} loaded.`;
+      status.textContent=`USA NEXRAD: ${siteId} — ${label}`;
+    });
+
+    gwrNexradLayer.on('tileerror',()=>{
+      gwrNexradStatus.textContent='Site radar failed to load. Try Refresh or another site.';
+    });
+
+    gwrNexradLayer.addTo(map);
+
+    if(zoomToSite && station){
+      map.setView([station.lat,station.lon],7);
+    }
+
+    clearInterval(gwrNexradRefreshTimer);
+    gwrNexradRefreshTimer=setInterval(()=>{
+      if(gwrRadarMode==='nexrad') gwrShowNexradRadar(false);
+    },60*1000);
+  }
+
+  function gwrRestoreGlobalRadar(){
+    gwrRadarMode='global';
+    radarSourceEl.value='global';
+    gwrNexradPanel.classList.remove('open');
+    gwrNexradPanel.setAttribute('aria-hidden','true');
+    gwrRemoveNexradLayer();
+
+    clearInterval(gwrNexradRefreshTimer);
+    gwrNexradRefreshTimer=null;
+
+    radarLayer=null;
+    playing=true;
+    const playControl=document.getElementById('play');
+    if(playControl) playControl.textContent='Pause';
+
+    if(frames.length){
+      showFrame(frames.length-1);
+      startAnimation();
+    }else{
+      loadRadar();
+    }
+  }
+
+  radarSourceEl.addEventListener('change',async()=>{
+    if(radarSourceEl.value==='nexrad'){
+      gwrNexradPanel.classList.add('open');
+      gwrNexradPanel.setAttribute('aria-hidden','false');
+      if(!gwrNexradStations.length) await gwrLoadNexradStations();
+      gwrShowNexradRadar(true);
+    }else{
+      gwrRestoreGlobalRadar();
+    }
+  });
+
+  gwrNexradSite.addEventListener('change',()=>gwrShowNexradRadar(true));
+  gwrNexradProduct.addEventListener('change',()=>gwrShowNexradRadar(false));
+  gwrNexradRefresh.addEventListener('click',()=>gwrShowNexradRadar(false));
+  gwrNexradGlobal.addEventListener('click',()=>gwrRestoreGlobalRadar());
+  gwrNexradX.addEventListener('click',()=>{
+    gwrNexradPanel.classList.remove('open');
+    gwrNexradPanel.setAttribute('aria-hidden','true');
+  });
+
+  ['click','pointerdown','touchstart'].forEach(type=>{
+    gwrNexradPanel.addEventListener(type,event=>event.stopPropagation(),{passive:true});
+  });
+
+  gwrLoadNexradStations();
+
+function startAnimation(){
     clearInterval(timer);
     timer=setInterval(()=>showFrame(frameIndex>=frames.length-1?0:frameIndex+1),1100);
   }
@@ -3392,27 +3251,6 @@ function startAnimation(){
   }
 
   async function loadRadar(){
-    // V84: do not even request/activate global radar while USA Site Radar is selected.
-    if(typeof gwrSiteMode!=='undefined' && gwrSiteMode){
-      clearInterval(timer);
-
-      if(radarNextLayer && map.hasLayer(radarNextLayer)){
-        map.removeLayer(radarNextLayer);
-      }
-      radarNextLayer=null;
-
-      if(radarLayer && map.hasLayer(radarLayer)){
-        map.removeLayer(radarLayer);
-      }
-      radarLayer=null;
-
-      const siteStatus=document.getElementById('status');
-      if(siteStatus){
-        siteStatus.textContent='USA NEXRAD — tap a radar circle';
-      }
-      return;
-    }
-
     clearInterval(timer);
 
     // If radar is already visible, leave it on-screen while refreshing.
@@ -3982,22 +3820,13 @@ function startAnimation(){
   }
 
   document.getElementById('play').addEventListener('click',event=>{
-    if(typeof gwrSiteMode!=='undefined' && gwrSiteMode){
-      clearInterval(timer);
-      event.target.textContent='Play';
-      return;
-    }
-
     playing=!playing;
     event.target.textContent=playing?'Pause':'Play';
     if(playing)startAnimation();else clearInterval(timer);
   });
   document.getElementById('latest').addEventListener('click',()=>{
-    if(typeof gwrSiteMode!=='undefined' && gwrSiteMode){
-      if(gwrSelectedSiteId){
-        const site=gwrBuiltInSites.find(s=>s.id===gwrSelectedSiteId);
-        if(site) gwrLoadSingleSite(site,false);
-      }
+    if(gwrRadarMode==='nexrad'){
+      gwrShowNexradRadar(false);
       return;
     }
 
@@ -4008,13 +3837,6 @@ function startAnimation(){
     }
   });
 
-  // Refresh RainViewer metadata only while Global Radar is actually selected.
-  setInterval(()=>{
-    if(typeof gwrSiteMode!=='undefined' && !gwrSiteMode){
-      loadRadar();
-    }
-  },5*60*1000);
-
   document.getElementById('scan').addEventListener('click',analyseVisible);
   document.getElementById('clear').addEventListener('click',()=>{
     warningLayer.clearLayers();
@@ -4024,6 +3846,7 @@ function startAnimation(){
     const value=Number(opacityEl.value);
     if(radarLayer)radarLayer.setOpacity(value);
     if(radarNextLayer)radarNextLayer.setOpacity(0);
+    if(gwrNexradLayer)gwrNexradLayer.setOpacity(value);
   });
 
   basemapEl.addEventListener('change',()=>{
@@ -4402,49 +4225,55 @@ function startAnimation(){
     }
   }
 
+  const gwrNwsTornadoToggle=document.getElementById('nwsTornadoToggle');
+  const gwrNwsSevereToggle=document.getElementById('nwsSevereToggle');
 
-  let gwrAutoWarningsActive=false;
-
-  async function gwrEnableAutoNwsWarnings(){
-    gwrAutoWarningsActive=true;
-
-    if(!map.hasLayer(gwrNwsTornadoLayer)){
-      gwrNwsTornadoLayer.addTo(map);
-    }
-    if(!map.hasLayer(gwrNwsSevereLayer)){
-      gwrNwsSevereLayer.addTo(map);
-    }
-
-    await Promise.allSettled([
-      gwrLoadNwsWarnings('Tornado Warning',gwrNwsTornadoLayer,'#ff0000'),
-      gwrLoadNwsWarnings('Severe Thunderstorm Warning',gwrNwsSevereLayer,'#ffa500')
-    ]);
-
-    const status=document.getElementById('nwsWarningsStatus');
-    if(status){
-      status.textContent='Official Tornado and Severe Thunderstorm Warnings are automatic in USA Site Radar mode.';
-    }
+  if(gwrNwsTornadoToggle){
+    gwrNwsTornadoToggle.addEventListener('change',async()=>{
+      if(gwrNwsTornadoToggle.checked){
+        if(!map.hasLayer(gwrNwsTornadoLayer)) gwrNwsTornadoLayer.addTo(map);
+        await gwrLoadNwsWarnings('Tornado Warning',gwrNwsTornadoLayer,'#ff0000');
+      }else if(map.hasLayer(gwrNwsTornadoLayer)){
+        map.removeLayer(gwrNwsTornadoLayer);
+      }
+    });
   }
 
-  function gwrDisableAutoNwsWarnings(){
-    gwrAutoWarningsActive=false;
-
-    if(map.hasLayer(gwrNwsTornadoLayer)){
-      map.removeLayer(gwrNwsTornadoLayer);
-    }
-    if(map.hasLayer(gwrNwsSevereLayer)){
-      map.removeLayer(gwrNwsSevereLayer);
-    }
+  if(gwrNwsSevereToggle){
+    gwrNwsSevereToggle.addEventListener('change',async()=>{
+      if(gwrNwsSevereToggle.checked){
+        if(!map.hasLayer(gwrNwsSevereLayer)) gwrNwsSevereLayer.addTo(map);
+        await gwrLoadNwsWarnings(
+          'Severe Thunderstorm Warning',
+          gwrNwsSevereLayer,
+          '#ffa500'
+        );
+      }else if(map.hasLayer(gwrNwsSevereLayer)){
+        map.removeLayer(gwrNwsSevereLayer);
+      }
+    });
   }
 
   setInterval(()=>{
-    if(gwrAutoWarningsActive && typeof gwrSiteMode!=='undefined' && gwrSiteMode){
+    if(gwrNwsTornadoToggle?.checked){
       gwrLoadNwsWarnings('Tornado Warning',gwrNwsTornadoLayer,'#ff0000');
-      gwrLoadNwsWarnings('Severe Thunderstorm Warning',gwrNwsSevereLayer,'#ffa500');
+    }
+    if(gwrNwsSevereToggle?.checked){
+      gwrLoadNwsWarnings(
+        'Severe Thunderstorm Warning',
+        gwrNwsSevereLayer,
+        '#ffa500'
+      );
     }
   },60000);
 
-  // V85: no automatic RainViewer startup while the app opens in USA Site Radar mode.
+
+  // Refresh the global RainViewer frame list every 5 minutes when in global mode.
+  setInterval(()=>{
+    if(gwrRadarMode==='global') loadRadar();
+  },5*60*1000);
+
+  loadRadar();
 })();
 </script>
 
@@ -4643,238 +4472,6 @@ function startAnimation(){
 
   window.addEventListener('resize',resizeCanvas);
 })();
-
-  // ===== V82 control wiring =====
-  const gwrSourceControl=document.getElementById('radarSource');
-  const gwrProductWrap=document.getElementById('gwrSiteProductControl');
-  const gwrReflectivityBtn=document.getElementById('gwrReflectivityBtn');
-  const gwrVelocityBtn=document.getElementById('gwrVelocityBtn');
-
-  if(gwrSourceControl){
-    gwrSourceControl.value='nexrad';
-    gwrSourceControl.addEventListener('change',()=>{
-      if(gwrSourceControl.value==='nexrad'){
-        gwrSiteMode=true;
-        gwrPurgeGlobalRainViewer();
-
-        const siteRadarPane=map.getPane('radarPane');
-        if(siteRadarPane){
-          siteRadarPane.style.filter='none';
-        }
-
-        if(gwrProductWrap) gwrProductWrap.classList.remove('hidden');
-        if(!map.hasLayer(gwrSiteLayer)) gwrSiteLayer.addTo(map);
-        map.setView([38.5,-97.5],4);
-        const st=document.getElementById('status');
-        if(st) st.textContent='USA NEXRAD — tap a radar circle';
-      }else{
-        gwrSiteMode=false;
-        gwrClearSingleSiteRadar();
-        gwrDisableAutoNwsWarnings();
-
-        // Restore the user's Global Radar colour/filter choice.
-        if(typeof applyRadarColour==='function'){
-          applyRadarColour();
-        }
-        if(map.hasLayer(gwrSiteLayer)) map.removeLayer(gwrSiteLayer);
-        if(gwrProductWrap) gwrProductWrap.classList.add('hidden');
-        if(typeof loadRadar==='function') loadRadar();
-      }
-    });
-  }
-
-  function gwrSetProduct(product){
-    if(product!=='SR_BREF' && product!=='SR_BVEL') return;
-
-    gwrSiteProductCode=product;
-
-    if(gwrReflectivityBtn){
-      gwrReflectivityBtn.classList.toggle('active',product==='SR_BREF');
-    }
-    if(gwrVelocityBtn){
-      gwrVelocityBtn.classList.toggle('active',product==='SR_BVEL');
-    }
-
-    if(!gwrSelectedSiteId){
-      const st=document.getElementById('status');
-      if(st) st.textContent='Tap a radar circle first.';
-      return;
-    }
-
-    const site=gwrBuiltInSites.find(s=>s.id===gwrSelectedSiteId);
-    if(!site) return;
-
-    // Different NOAA layer name, same radar workspace.
-    gwrClearSingleSiteRadar();
-    gwrPurgeGlobalRainViewer();
-    gwrLoadSingleSite(site,false);
-  }
-
-  if(gwrReflectivityBtn){
-    gwrReflectivityBtn.addEventListener('click',()=>{
-      gwrSetProduct('SR_BREF');
-    });
-  }
-
-  if(gwrVelocityBtn){
-    gwrVelocityBtn.addEventListener('click',()=>{
-      gwrSetProduct('SR_BVEL');
-    });
-  }
-
-  const gwrKey=document.getElementById('gwrWeatherKey');
-  const gwrKeyClose=document.getElementById('gwrWeatherKeyClose');
-  if(gwrKey && gwrKeyClose){
-    gwrKeyClose.addEventListener('click',e=>{
-      e.preventDefault();
-      e.stopPropagation();
-      gwrKey.style.display='none';
-    });
-  }
-
-  // Force site mode after all other initialization.
-  setTimeout(()=>{
-    gwrSiteMode=true;
-    gwrPurgeGlobalRainViewer();
-
-    const siteRadarPane=map.getPane('radarPane');
-    if(siteRadarPane){
-      siteRadarPane.style.filter='none';
-    }
-
-    if(gwrSourceControl) gwrSourceControl.value='nexrad';
-    if(gwrProductWrap) gwrProductWrap.classList.remove('hidden');
-    if(!map.hasLayer(gwrSiteLayer)) gwrSiteLayer.addTo(map);
-    map.setView([38.5,-97.5],4);
-    const st=document.getElementById('status');
-    if(st) st.textContent='USA NEXRAD — tap a radar circle';
-  },0);
-
-
-  function gwrKillGlobalRadarDuringStartup(){
-    if(!gwrSiteMode) return;
-    gwrPurgeGlobalRainViewer();
-
-    const siteRadarPane=map.getPane('radarPane');
-    if(siteRadarPane){
-      siteRadarPane.style.filter='none';
-    }
-  }
-
-  // Kill any old RainViewer request/layer that completes just after page startup.
-  [0,100,250,500,1000,2000,3500,5000,7500,10000].forEach(delay=>{
-    setTimeout(gwrKillGlobalRadarDuringStartup,delay);
-  });
-
-
-  // ------------------------------------------------------------
-  // Movable + resizable SPC / Draw / Measure windows
-  // ------------------------------------------------------------
-  function gwrMakeFloatingPanel(panelId,headerSelector){
-    const panel=document.getElementById(panelId);
-    if(!panel) return;
-
-    const header=panel.querySelector(headerSelector);
-    const handle=panel.querySelector('.gwr-resize-handle');
-    if(!header || !handle) return;
-
-    let dragging=false;
-    let resizing=false;
-    let startX=0,startY=0,startLeft=0,startTop=0,startW=0,startH=0;
-
-    function freezeTransform(){
-      const rect=panel.getBoundingClientRect();
-      panel.style.transform='none';
-      panel.style.left=`${rect.left}px`;
-      panel.style.top=`${rect.top}px`;
-      panel.style.right='auto';
-      panel.style.bottom='auto';
-      return rect;
-    }
-
-    header.addEventListener('pointerdown',event=>{
-      if(event.target.closest('button,select,input,a')) return;
-      event.preventDefault();
-      event.stopPropagation();
-
-      const rect=freezeTransform();
-      dragging=true;
-      startX=event.clientX;
-      startY=event.clientY;
-      startLeft=rect.left;
-      startTop=rect.top;
-
-      try{header.setPointerCapture(event.pointerId)}catch(error){}
-    });
-
-    header.addEventListener('pointermove',event=>{
-      if(!dragging) return;
-      event.preventDefault();
-
-      const maxLeft=Math.max(0,window.innerWidth-panel.offsetWidth);
-      const maxTop=Math.max(0,window.innerHeight-panel.offsetHeight);
-
-      const nextLeft=Math.min(maxLeft,Math.max(0,startLeft+(event.clientX-startX)));
-      const nextTop=Math.min(maxTop,Math.max(0,startTop+(event.clientY-startY)));
-
-      panel.style.left=`${nextLeft}px`;
-      panel.style.top=`${nextTop}px`;
-    });
-
-    const stopDrag=event=>{
-      if(!dragging) return;
-      dragging=false;
-      try{header.releasePointerCapture(event.pointerId)}catch(error){}
-    };
-    header.addEventListener('pointerup',stopDrag);
-    header.addEventListener('pointercancel',stopDrag);
-
-    handle.addEventListener('pointerdown',event=>{
-      event.preventDefault();
-      event.stopPropagation();
-
-      const rect=freezeTransform();
-      resizing=true;
-      startX=event.clientX;
-      startY=event.clientY;
-      startW=rect.width;
-      startH=rect.height;
-
-      try{handle.setPointerCapture(event.pointerId)}catch(error){}
-    });
-
-    handle.addEventListener('pointermove',event=>{
-      if(!resizing) return;
-      event.preventDefault();
-
-      const left=parseFloat(panel.style.left)||0;
-      const top=parseFloat(panel.style.top)||0;
-
-      const minW=panelId==='gwrLayersPanel'?260:210;
-      const minH=panelId==='gwrDrawPanel'?170:110;
-      const maxW=Math.max(minW,window.innerWidth-left-8);
-      const maxH=Math.max(minH,window.innerHeight-top-8);
-
-      const nextW=Math.min(maxW,Math.max(minW,startW+(event.clientX-startX)));
-      const nextH=Math.min(maxH,Math.max(minH,startH+(event.clientY-startY)));
-
-      panel.style.width=`${nextW}px`;
-      panel.style.height=`${nextH}px`;
-    });
-
-    const stopResize=event=>{
-      if(!resizing) return;
-      resizing=false;
-      try{handle.releasePointerCapture(event.pointerId)}catch(error){}
-    };
-    handle.addEventListener('pointerup',stopResize);
-    handle.addEventListener('pointercancel',stopResize);
-  }
-
-  gwrMakeFloatingPanel('gwrLayersPanel','.gwr-layers-head');
-  gwrMakeFloatingPanel('gwrDrawPanel','.gwr-draw-head');
-  gwrMakeFloatingPanel('gwrMeasurePanel','.gwr-measure-head');
-
 </script>
 
 </body>

@@ -1006,88 +1006,24 @@ button.primary{background:#38bdf8;color:#062033;border-color:transparent;font-we
 }
 
 
-/* ===== SPC V29 FINAL PANEL + LABEL FIX ===== */
-#gwrLayersTool{
-  position:absolute!important;
-  left:14px!important;
-  top:356px!important;
-  z-index:20000!important;
-}
-
-#gwrLayersPanel{
-  position:fixed!important;
-  left:84px!important;
-  top:calc(env(safe-area-inset-top,0px) + 150px)!important;
-  width:300px!important;
-  max-width:calc(100vw - 100px)!important;
-  max-height:calc(100vh - 180px)!important;
-  overflow-y:auto!important;
-  overflow-x:hidden!important;
-  box-sizing:border-box!important;
-  overscroll-behavior:contain!important;
-}
-
-@media(max-width:700px){
-  #gwrLayersTool{
-    left:14px!important;
-    top:215px!important;
-  }
-
-  #gwrLayersPanel{
-    left:14px!important;
-    right:14px!important;
-    top:auto!important;
-    bottom:18px!important;
-    width:auto!important;
-    max-width:none!important;
-    max-height:58vh!important;
-  }
-}
-
-/* ===== EXPERIMENTAL WARNING LABELS V30 ===== */
-.gwr-warning-label{
-  background:rgba(5,12,24,.9)!important;
-  color:#fff!important;
-  border:1px solid rgba(255,255,255,.22)!important;
-  border-radius:7px!important;
-  box-shadow:0 2px 8px rgba(0,0,0,.45)!important;
-  font-size:10px!important;
-  font-weight:800!important;
-  letter-spacing:.02em!important;
-  padding:3px 6px!important;
-  text-transform:uppercase!important;
-  white-space:nowrap!important;
-}
-.gwr-warning-label:before{
+/* V37 stable recovery: hide SPC tornado/hail/wind probability controls */
+.gwr-spc-row:has(input[data-spc-layer="3"]),
+.gwr-spc-row:has(input[data-spc-layer="5"]),
+.gwr-spc-row:has(input[data-spc-layer="7"]),
+.gwr-layer-row:has(input[data-spc-layer="3"]),
+.gwr-layer-row:has(input[data-spc-layer="5"]),
+.gwr-layer-row:has(input[data-spc-layer="7"]){
   display:none!important;
 }
 
 
-/* ===== WARNING FRAME LINE LABELS V31 ===== */
-.gwr-layer-section-title{
-  margin:11px 0 7px;padding-top:10px;border-top:1px solid rgba(255,255,255,.12);
-  font-size:12px;font-weight:800;color:#f8fafc;
-}
-.nws-colour-box{
-  width:16px;height:16px;border-radius:3px;border:2px solid currentColor;background:transparent;flex:0 0 auto;
-}
-.tornado-box{color:#ff0000}
-.severe-box{color:#ffa500}
-#gwrLayersButton{
-  width:52px!important;
-  font-size:13px!important;
-  font-weight:900!important;
-  letter-spacing:.04em!important;
-}
-
-
-/* ===== BOTTOM-RIGHT WEATHER KEY V33 ===== */
+/* ===== V38 BOTTOM-RIGHT RADAR KEY ===== */
 #gwrWeatherKey{
   position:absolute;
   right:14px;
   bottom:34px;
   z-index:17000;
-  width:250px;
+  width:245px;
   max-width:calc(100vw - 28px);
   padding:10px 11px;
   box-sizing:border-box;
@@ -1103,18 +1039,21 @@ button.primary{background:#38bdf8;color:#062033;border-color:transparent;font-we
 .gwr-key-title{
   font-size:11px;
   font-weight:900;
-  margin-bottom:6px;
+  margin-bottom:7px;
 }
-.gwr-key-section{
-  margin-top:6px;
-  padding-top:6px;
-  border-top:1px solid rgba(255,255,255,.1);
+.gwr-key-subtitle{
+  font-size:10px;
+  font-weight:800;
+  margin-bottom:6px;
+  color:#d7e0ed;
+  text-transform:uppercase;
+  letter-spacing:.03em;
 }
 .gwr-key-row{
   display:flex;
   align-items:center;
   gap:7px;
-  margin:4px 0;
+  margin:5px 0;
 }
 .gwr-key-swatch{
   width:18px;
@@ -1123,65 +1062,50 @@ button.primary{background:#38bdf8;color:#062033;border-color:transparent;font-we
   background:transparent;
   flex:0 0 auto;
 }
-.key-mrgl{color:#005500}
-.key-slgt{color:#D6D600}
-.key-enh{color:#FF9900}
-.key-mdt{color:#FF0000}
-.key-high{color:#FF00FF}
-.key-tor{color:#ff0000}
-.key-svr{color:#ffa500}
-@media(max-width:700px){
-  #gwrWeatherKey{
-    right:10px;
-    bottom:10px;
-    width:215px;
-    font-size:9.5px;
-  }
-}
-
-
-/* ===== V34 WEATHER KEY BOTTOM RIGHT ===== */
-#gwrWeatherKey{
-  left:auto!important;
-  right:14px!important;
-  bottom:34px!important;
-  max-height:calc(100vh - 68px)!important;
-  overflow-y:auto!important;
-}
-@media(max-width:700px){
-  #gwrWeatherKey{
-    left:auto!important;
-    right:10px!important;
-    bottom:10px!important;
-    width:215px!important;
-    max-height:45vh!important;
-  }
-}
-
-
-/* ===== V35 RADAR-DETECTED HAZARD KEY ===== */
 .key-lightning{color:#facc15}
 .key-smallhail{color:#22c55e}
 .key-mediumhail{color:#f97316}
 .key-largehail{color:#ef4444}
 .key-hook{color:#ff4fd8}
-.gwr-detected-key{
-  margin-top:7px!important;
-  padding-top:7px!important;
+
+@media(max-width:700px){
+  #gwrWeatherKey{
+    right:10px;
+    bottom:10px;
+    width:215px;
+    max-height:45vh;
+    overflow-y:auto;
+  }
 }
 
 
-/* ===== V36 WEATHER KEY SECTION HEADINGS ===== */
-.gwr-key-section-title{
-  margin:8px 0 5px;
-  font-size:10px;
-  font-weight:900;
-  letter-spacing:.04em;
-  text-transform:uppercase;
-  color:#dbe5f2;
+#gwrLayersButton{
+  width:52px!important;
+  font-size:13px!important;
+  font-weight:900!important;
+  letter-spacing:.04em!important;
 }
-.gwr-key-section-title:first-child{
-  margin-top:0;
+
+
+.gwr-layer-section-title{
+  margin:11px 0 7px;
+  padding-top:10px;
+  border-top:1px solid rgba(255,255,255,.12);
+  font-size:12px;
+  font-weight:800;
+  color:#f8fafc;
+}
+.key-mrgl{color:#005500}
+.key-slgt{color:#D6D600}
+.key-enh{color:#FF9900}
+.key-mdt{color:#FF0000}
+.key-high{color:#FF00FF}
+.key-nwstor{color:#ff0000}
+.key-nwssvr{color:#ffa500}
+.gwr-key-section{
+  margin-top:7px;
+  padding-top:7px;
+  border-top:1px solid rgba(255,255,255,.12);
 }
 
 </style>
@@ -1226,27 +1150,26 @@ button.primary{background:#38bdf8;color:#062033;border-color:transparent;font-we
 <div id="map"></div>
 <div id="gwrWeatherKey">
   <div class="gwr-key-title">Weather key</div>
-  <div class="gwr-key-section gwr-detected-key">
-    <div class="gwr-key-section-title">Radar detected</div>
-    <div class="gwr-key-row"><span class="gwr-key-swatch key-lightning"></span><span>Lightning likelihood</span></div>
-    <div class="gwr-key-row"><span class="gwr-key-swatch key-smallhail"></span><span>Small hail signal</span></div>
-    <div class="gwr-key-row"><span class="gwr-key-swatch key-mediumhail"></span><span>Medium hail signal</span></div>
-    <div class="gwr-key-row"><span class="gwr-key-swatch key-largehail"></span><span>Large hail signal</span></div>
-    <div class="gwr-key-row"><span class="gwr-key-swatch key-hook"></span><span>Hook echo candidate</span></div>
-  </div>
-
-
-  <div class="gwr-key-section-title">SPC outlooks</div>
-  <div class="gwr-key-row"><span class="gwr-key-swatch key-mrgl"></span><span>SPC Marginal</span></div>
-  <div class="gwr-key-row"><span class="gwr-key-swatch key-slgt"></span><span>SPC Slight</span></div>
-  <div class="gwr-key-row"><span class="gwr-key-swatch key-enh"></span><span>SPC Enhanced</span></div>
-  <div class="gwr-key-row"><span class="gwr-key-swatch key-mdt"></span><span>SPC Moderate</span></div>
-  <div class="gwr-key-row"><span class="gwr-key-swatch key-high"></span><span>SPC High</span></div>
+  <div class="gwr-key-subtitle">Radar detected</div>
+  <div class="gwr-key-row"><span class="gwr-key-swatch key-lightning"></span><span>Lightning likelihood</span></div>
+  <div class="gwr-key-row"><span class="gwr-key-swatch key-smallhail"></span><span>Small hail signal</span></div>
+  <div class="gwr-key-row"><span class="gwr-key-swatch key-mediumhail"></span><span>Medium hail signal</span></div>
+  <div class="gwr-key-row"><span class="gwr-key-swatch key-largehail"></span><span>Large hail signal</span></div>
+  <div class="gwr-key-row"><span class="gwr-key-swatch key-hook"></span><span>Hook echo candidate</span></div>
 
   <div class="gwr-key-section">
-    <div class="gwr-key-section-title">Official NWS warnings</div>
-    <div class="gwr-key-row"><span class="gwr-key-swatch key-tor"></span><span>NWS Tornado Warning</span></div>
-    <div class="gwr-key-row"><span class="gwr-key-swatch key-svr"></span><span>NWS Severe T-Storm Warning</span></div>
+    <div class="gwr-key-subtitle">Official SPC outlooks</div>
+    <div class="gwr-key-row"><span class="gwr-key-swatch key-mrgl"></span><span>Marginal</span></div>
+    <div class="gwr-key-row"><span class="gwr-key-swatch key-slgt"></span><span>Slight</span></div>
+    <div class="gwr-key-row"><span class="gwr-key-swatch key-enh"></span><span>Enhanced</span></div>
+    <div class="gwr-key-row"><span class="gwr-key-swatch key-mdt"></span><span>Moderate</span></div>
+    <div class="gwr-key-row"><span class="gwr-key-swatch key-high"></span><span>High</span></div>
+  </div>
+
+  <div class="gwr-key-section">
+    <div class="gwr-key-subtitle">Official NWS warnings</div>
+    <div class="gwr-key-row"><span class="gwr-key-swatch key-nwstor"></span><span>Tornado Warning</span></div>
+    <div class="gwr-key-row"><span class="gwr-key-swatch key-nwssvr"></span><span>Severe T-Storm Warning</span></div>
   </div>
 </div>
 
@@ -1254,7 +1177,7 @@ button.primary{background:#38bdf8;color:#062033;border-color:transparent;font-we
   <button id="gwrLayersButton" type="button" aria-label="SPC and NWS layers" title="SPC and NWS layers">SPC</button>
   <div id="gwrLayersPanel">
     <div class="gwr-layers-head">
-      <strong>Weather layers</strong>
+      <strong>SPC outlooks</strong>
       <button id="gwrLayersX" type="button" aria-label="Close layers">×</button>
     </div>
     <div class="gwr-layer-note">Official NOAA/SPC outlooks for the United States.</div>
@@ -1272,35 +1195,23 @@ button.primary{background:#38bdf8;color:#062033;border-color:transparent;font-we
         <input type="checkbox" data-spc-layer="17">
         <span>SPC Day 3 categorical</span>
       </label>
-      <label class="gwr-layer-row">
-        <input type="checkbox" data-spc-layer="3">
-        <span>Day 1 tornado probability</span>
-      </label>
-      <label class="gwr-layer-row">
-        <input type="checkbox" data-spc-layer="5">
-        <span>Day 1 hail probability</span>
-      </label>
-      <label class="gwr-layer-row">
-        <input type="checkbox" data-spc-layer="7">
-        <span>Day 1 wind probability</span>
-      </label>
     </div>
     <div id="gwrSpcStatus" class="gwr-spc-status">Tap a layer to load the latest SPC polygons.</div>
 
-    <div class="gwr-layer-section-title">Official NWS warnings — optional overlay</div>
+    <div class="gwr-layer-section-title">Official NWS warnings</div>
     <div class="gwr-layer-list">
       <label class="gwr-layer-row">
         <input type="checkbox" id="nwsTornadoToggle">
-        <span>Tornado Warnings</span>
-        <span class="nws-colour-box tornado-box"></span>
+        <span>NWS Tornado Warnings</span>
       </label>
       <label class="gwr-layer-row">
         <input type="checkbox" id="nwsSevereToggle">
-        <span>Severe T-Storm Warnings</span>
-        <span class="nws-colour-box severe-box"></span>
+        <span>NWS Severe T-Storm Warnings</span>
       </label>
     </div>
-    <div id="nwsWarningsStatus" class="gwr-spc-status">Optional NWS warning overlay. Independent from SPC outlooks.</div>
+    <div id="nwsWarningsStatus" class="gwr-spc-status">
+      Warning overlays are separate from SPC outlooks.
+    </div>
 
   </div>
 </div>
@@ -1782,44 +1693,6 @@ button.primary{background:#38bdf8;color:#062033;border-color:transparent;font-we
     return best>=5&&best<=11&&empty>=4&&cluster.maxDbz>=210;
   }
 
-
-  function longestEdgeMidpoint(latlngs){
-    if(!latlngs || latlngs.length<2) return null;
-    let best=null;
-    let bestLen=-1;
-
-    for(let i=0;i<latlngs.length;i++){
-      const a=latlngs[i];
-      const b=latlngs[(i+1)%latlngs.length];
-      const pa=map.latLngToLayerPoint(a);
-      const pb=map.latLngToLayerPoint(b);
-      const len=pa.distanceTo(pb);
-
-      if(len>bestLen){
-        bestLen=len;
-        best=L.latLng((a.lat+b.lat)/2,(a.lng+b.lng)/2);
-      }
-    }
-    return best;
-  }
-
-  function
-const ring=Array.isArray(rings[0]) ? rings[0] : rings;
-    const pos=longestEdgeMidpoint(ring);
-    if(!pos) return;
-
-    const icon=L.divIcon({
-      className:'',
-      html:`<div class="gwr-warning-line-label" style="color:${colour};border-color:${colour}!important">${label}</div>`
-    });
-
-    L.marker(pos,{
-      icon,
-      interactive:false,
-      pane:'warningPane'
-    }).addTo(warningLayer);
-  }
-
   async function analyseVisible(){
     if(frames.length<2){
       status.textContent='Radar frames are not ready yet.';
@@ -2019,6 +1892,13 @@ const ring=Array.isArray(rings[0]) ? rings[0] : rings;
           lineJoin:'round'
         }).addTo(warningLayer);
 
+        polygon.bindTooltip(primary.label,{
+          permanent:true,
+          direction:'center',
+          className:'storm-hazard-label',
+          opacity:.95
+        });
+
         polygon.on('click',async()=>{
           polygon.bindPopup(`
             <div class="warning-popup">
@@ -2102,83 +1982,77 @@ const ring=Array.isArray(rings[0]) ? rings[0] : rings;
 
   function spcCategoricalStyle(feature){
     const dn=Number(feature?.properties?.dn);
-
-    // SPC categorical convective outlook colours.
-    const palette={
-      2:{line:'#55BB55',fill:'#C1E9C1'},   // TSTM
-      3:{line:'#005500',fill:'#66A366'},   // MRGL
-      4:{line:'#D6D600',fill:'#FFFF99'},   // SLGT
-      5:{line:'#FF9900',fill:'#FFCC66'},   // ENH
-      6:{line:'#FF0000',fill:'#FF6666'},   // MDT
-      8:{line:'#FF00FF',fill:'#FF66FF'}    // HIGH
+    const styles={
+      2:{color:'#79d879',fill:'#bdf7bd'},     // thunder
+      3:{color:'#3d8c3d',fill:'#73b273'},     // marginal
+      4:{color:'#d9cf32',fill:'#f7f78f'},     // slight
+      5:{color:'#d98700',fill:'#e69800'},     // enhanced
+      6:{color:'#ff2d2d',fill:'#ff0000'},     // moderate
+      8:{color:'#ff39cf',fill:'#ff00c5'}      // high
     };
-
-    const s=palette[dn]||{line:'#9ca3af',fill:'#6b7280'};
+    const s=styles[dn]||{color:'#9ca3af',fill:'#6b7280'};
     return {
-      color:s.line,
-      weight:3,
-      opacity:1,
+      color:s.color,
+      weight:2.5,
+      opacity:.95,
       fillColor:s.fill,
-      fillOpacity:.25,
+      fillOpacity:.22,
       pane:'spcPane'
     };
   }
 
-  function spcProbabilityPalette(layerId,dn){
-    // SPC probability colours differ by hazard.
-    // Layer 3 = tornado, 5 = hail, 7 = wind.
-    if(Number(layerId)===3){
-      // Tornado: 2,5,10,15,30,45,60%
-      return ({
-        2 :{line:'#007F00',fill:'#66B266'},
-        5 :{line:'#8B4513',fill:'#C79B7B'},
-        10:{line:'#FFD700',fill:'#FFF080'},
-        15:{line:'#FF0000',fill:'#FF6666'},
-        30:{line:'#FF00FF',fill:'#FF66FF'},
-        45:{line:'#912CEE',fill:'#C084F5'},
-        60:{line:'#000000',fill:'#6B7280'}
-      })[dn];
+  function normaliseSpcColour(value,fallback){
+    if(!value) return fallback;
+    const v=String(value).trim();
+
+    if(/^#[0-9a-f]{6}$/i.test(v) || /^#[0-9a-f]{3}$/i.test(v)) return v;
+    if(/^rgba?\(/i.test(v)) return v;
+
+    const rgb=v.match(/(\d{1,3})\D+(\d{1,3})\D+(\d{1,3})/);
+    if(rgb){
+      return `rgb(${rgb[1]},${rgb[2]},${rgb[3]})`;
     }
 
-    if(Number(layerId)===5){
-      // Hail: 5,15,30,45,60%
-      return ({
-        5 :{line:'#8B4513',fill:'#C79B7B'},
-        15:{line:'#FFD700',fill:'#FFF080'},
-        30:{line:'#FF0000',fill:'#FF6666'},
-        45:{line:'#FF00FF',fill:'#FF66FF'},
-        60:{line:'#912CEE',fill:'#C084F5'}
-      })[dn];
-    }
-
-    if(Number(layerId)===7){
-      // Wind: 5,15,30,45,60%
-      return ({
-        5 :{line:'#8B4513',fill:'#C79B7B'},
-        15:{line:'#FFD700',fill:'#FFF080'},
-        30:{line:'#FF0000',fill:'#FF6666'},
-        45:{line:'#FF00FF',fill:'#FF66FF'},
-        60:{line:'#912CEE',fill:'#C084F5'}
-      })[dn];
-    }
-
-    return null;
+    return fallback;
   }
 
   function officialSpcStyle(feature,layerId){
     const p=feature?.properties||{};
     const dn=Number(p.dn);
-    const fallback=spcProbabilityPalette(layerId,dn) || {
-      line:'#9ca3af',
-      fill:'#6b7280'
-    };
+
+    const fallbackOutline={
+      2:'#1a731d',
+      5:'#8b4726',
+      10:'#b59b00',
+      15:'#ff9600',
+      30:'#ff0000',
+      45:'#ff00ff',
+      60:'#912cee',
+      75:'#2952a3',
+      90:'#00cccc'
+    }[dn] || '#9ca3af';
+
+    const fallbackFill={
+      2:'#79ba7a',
+      5:'#c5a392',
+      10:'#fff17f',
+      15:'#ffeb7f',
+      30:'#ff7f7f',
+      45:'#ff7fff',
+      60:'#c895f6',
+      75:'#5c85d6',
+      90:'#1affff'
+    }[dn] || '#6b7280';
+
+    const outline=normaliseSpcColour(p.stroke,fallbackOutline);
+    const fill=normaliseSpcColour(p.fill,fallbackFill);
 
     return {
-      color:fallback.line,
-      weight:3,
-      opacity:1,
-      fillColor:fallback.fill,
-      fillOpacity:.22,
+      color:outline,
+      weight:2.5,
+      opacity:.98,
+      fillColor:fill,
+      fillOpacity:.24,
       pane:'spcPane'
     };
   }
@@ -2191,7 +2065,6 @@ const ring=Array.isArray(rings[0]) ? rings[0] : rings;
 
   function spcRiskName(layerId,props){
     const dn=Number(props?.dn);
-
     if([1,9,17].includes(Number(layerId))){
       return ({
         2:'Thunderstorm',
@@ -2202,14 +2075,7 @@ const ring=Array.isArray(rings[0]) ? rings[0] : rings;
         8:'High'
       })[dn] || props?.label || `Category ${dn}`;
     }
-
-    const hazard=
-      Number(layerId)===3 ? 'Tornado' :
-      Number(layerId)===5 ? 'Hail' :
-      Number(layerId)===7 ? 'Wind' :
-      'Probability';
-
-    return `${hazard} ${Number.isFinite(dn)?dn:''}%`.trim();
+    return props?.label || (Number.isFinite(dn)?`${dn}% probability`:'SPC probability');
   }
 
   async function loadSpcLayer(layerId){
@@ -2235,13 +2101,12 @@ const ring=Array.isArray(rings[0]) ? rings[0] : rings;
         onEachFeature:(feature,shape)=>{
           const p=feature.properties||{};
           const risk=spcRiskName(layerId,p);
-
-                    shape.bindPopup(`
+          shape.bindPopup(`
             <div>
               <b>SPC ${risk}</b><br>
               ${p.valid?`<b>Valid:</b> ${p.valid}<br>`:''}
               ${p.expire?`<b>Expires:</b> ${p.expire}<br>`:''}
-              <small>Official NOAA/NWS Storm Prediction Center outlook.</small>
+              <small>Official NOAA/NWS Storm Prediction Center outlook. Colours follow the NOAA/SPC source layer.</small>
             </div>
           `);
         }
@@ -2297,129 +2162,119 @@ const ring=Array.isArray(rings[0]) ? rings[0] : rings;
 
 
   // ------------------------------------------------------------
-  // Official National Weather Service warning polygons
+  // Official NWS warning overlays — independent from SPC.
   // ------------------------------------------------------------
   if(!map.getPane('nwsWarningPane')){
     map.createPane('nwsWarningPane');
     map.getPane('nwsWarningPane').style.zIndex='680';
   }
 
-  const nwsTornadoLayer=L.layerGroup();
-  const nwsSevereLayer=L.layerGroup();
+  const gwrNwsTornadoLayer=L.layerGroup();
+  const gwrNwsSevereLayer=L.layerGroup();
 
-  function warningEdgeLabelPosition(layer){
-    try{
-      const rings=layer.getLatLngs();
-      const ring=Array.isArray(rings[0]) ? rings[0] : rings;
-      if(!ring || ring.length<2) return layer.getBounds().getCenter();
-      let best=null, bestLen=-1;
-      for(let i=0;i<ring.length;i++){
-        const a=ring[i], b=ring[(i+1)%ring.length];
-        const pa=map.latLngToLayerPoint(a), pb=map.latLngToLayerPoint(b);
-        const len=pa.distanceTo(pb);
-        if(len>bestLen){
-          bestLen=len;
-          best=L.latLng((a.lat+b.lat)/2,(a.lng+b.lng)/2);
-        }
-      }
-      return best || layer.getBounds().getCenter();
-    }catch(_){
-      return layer.getBounds ? layer.getBounds().getCenter() : map.getCenter();
-    }
-  }
-
-  function
-const icon=L.divIcon({
-      className:'',
-      html:`<div class="nws-warning-label" style="border:2px solid ${colour};">${text}</div>`
-    });
-    L.marker(pos,{icon,interactive:false,pane:'nwsWarningPane'}).addTo(targetLayer);
-  }
-
-  function nwsPopupHtml(props){
+  function gwrNwsPopup(props){
     const headline=props.headline || props.event || 'NWS Warning';
     const area=props.areaDesc || '';
-    const severity=props.severity || '';
-    const certainty=props.certainty || '';
-    const urgency=props.urgency || '';
     const expires=props.expires ? new Date(props.expires).toLocaleString() : '';
+
     return `
       <div>
         <b>${headline}</b><br><br>
         ${area?`<b>Area:</b> ${area}<br>`:''}
-        ${severity?`<b>Severity:</b> ${severity}<br>`:''}
-        ${certainty?`<b>Certainty:</b> ${certainty}<br>`:''}
-        ${urgency?`<b>Urgency:</b> ${urgency}<br>`:''}
         ${expires?`<b>Expires:</b> ${expires}<br>`:''}
         <br><small>Official National Weather Service alert.</small>
-      </div>`;
+      </div>
+    `;
   }
 
-  async function fetchNwsWarnings(eventName,targetLayer,colour,labelText){
+  async function gwrLoadNwsWarnings(eventName,targetLayer,colour){
     const status=document.getElementById('nwsWarningsStatus');
-    status.textContent=`Loading ${eventName}s…`;
-    const url=`https://api.weather.gov/alerts/active?event=${encodeURIComponent(eventName)}`;
+    if(status) status.textContent=`Loading ${eventName}s…`;
+
     try{
-      const response=await fetch(url,{headers:{'Accept':'application/geo+json'},cache:'no-store'});
+      const response=await fetch(
+        `https://api.weather.gov/alerts/active?event=${encodeURIComponent(eventName)}`,
+        {
+          headers:{'Accept':'application/geo+json'},
+          cache:'no-store'
+        }
+      );
+
       if(!response.ok) throw new Error(`NWS ${response.status}`);
+
       const data=await response.json();
       targetLayer.clearLayers();
-      let count=0;
 
+      let count=0;
       for(const feature of (data.features||[])){
         if(!feature.geometry) continue;
 
-        const geo=L.geoJSON(feature,{
+        L.geoJSON(feature,{
           pane:'nwsWarningPane',
           style:{
-            color:colour,weight:4,opacity:1,fillColor:colour,fillOpacity:.10,pane:'nwsWarningPane'
+            color:colour,
+            weight:4,
+            opacity:1,
+            fillColor:colour,
+            fillOpacity:.10,
+            pane:'nwsWarningPane'
           },
           onEachFeature:(f,shape)=>{
-            shape.bindPopup(nwsPopupHtml(f.properties||{}));
-            }
-        });
+            shape.bindPopup(gwrNwsPopup(f.properties||{}));
+          }
+        }).addTo(targetLayer);
 
-        geo.addTo(targetLayer);
         count++;
       }
-      status.textContent=`${count} active ${eventName}${count===1?'':'s'} loaded.`;
+
+      if(status){
+        status.textContent=`${count} active ${eventName}${count===1?'':'s'} loaded.`;
+      }
     }catch(error){
       console.error('NWS warning error',error);
-      status.textContent=`Could not load ${eventName}s.`;
+      if(status) status.textContent=`Could not load ${eventName}s.`;
     }
   }
 
-  const nwsTornadoToggle=document.getElementById('nwsTornadoToggle');
-  const nwsSevereToggle=document.getElementById('nwsSevereToggle');
+  const gwrNwsTornadoToggle=document.getElementById('nwsTornadoToggle');
+  const gwrNwsSevereToggle=document.getElementById('nwsSevereToggle');
 
-  if(nwsTornadoToggle){
-    nwsTornadoToggle.addEventListener('change',async()=>{
-      if(nwsTornadoToggle.checked){
-        if(!map.hasLayer(nwsTornadoLayer)) nwsTornadoLayer.addTo(map);
-        await fetchNwsWarnings('Tornado Warning',nwsTornadoLayer,'#ff0000','TORNADO WARNING');
-      }else if(map.hasLayer(nwsTornadoLayer)){
-        map.removeLayer(nwsTornadoLayer);
+  if(gwrNwsTornadoToggle){
+    gwrNwsTornadoToggle.addEventListener('change',async()=>{
+      if(gwrNwsTornadoToggle.checked){
+        if(!map.hasLayer(gwrNwsTornadoLayer)) gwrNwsTornadoLayer.addTo(map);
+        await gwrLoadNwsWarnings('Tornado Warning',gwrNwsTornadoLayer,'#ff0000');
+      }else if(map.hasLayer(gwrNwsTornadoLayer)){
+        map.removeLayer(gwrNwsTornadoLayer);
       }
     });
   }
 
-  if(nwsSevereToggle){
-    nwsSevereToggle.addEventListener('change',async()=>{
-      if(nwsSevereToggle.checked){
-        if(!map.hasLayer(nwsSevereLayer)) nwsSevereLayer.addTo(map);
-        await fetchNwsWarnings('Severe Thunderstorm Warning',nwsSevereLayer,'#ffa500','SEVERE T-STORM WARNING');
-      }else if(map.hasLayer(nwsSevereLayer)){
-        map.removeLayer(nwsSevereLayer);
+  if(gwrNwsSevereToggle){
+    gwrNwsSevereToggle.addEventListener('change',async()=>{
+      if(gwrNwsSevereToggle.checked){
+        if(!map.hasLayer(gwrNwsSevereLayer)) gwrNwsSevereLayer.addTo(map);
+        await gwrLoadNwsWarnings(
+          'Severe Thunderstorm Warning',
+          gwrNwsSevereLayer,
+          '#ffa500'
+        );
+      }else if(map.hasLayer(gwrNwsSevereLayer)){
+        map.removeLayer(gwrNwsSevereLayer);
       }
     });
   }
 
   setInterval(()=>{
-    if(nwsTornadoToggle?.checked){
-      fetchNwsWarnings('Tornado Warning',nwsTornadoLayer,'#ff0000','TORNADO WARNING');
+    if(gwrNwsTornadoToggle?.checked){
+      gwrLoadNwsWarnings('Tornado Warning',gwrNwsTornadoLayer,'#ff0000');
     }
-    if(nwsSevereToggle?.checked){
-      fetchNwsWarnings('Severe Thunderstorm Warning',nwsSevereLayer,'#ffa500','SEVERE T-STORM WARNING');
+    if(gwrNwsSevereToggle?.checked){
+      gwrLoadNwsWarnings(
+        'Severe Thunderstorm Warning',
+        gwrNwsSevereLayer,
+        '#ffa500'
+      );
     }
   },60000);
 

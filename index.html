@@ -1911,14 +1911,12 @@ button[aria-label="Legend"]{
       <option value="dark" selected>Map: Dark Matter</option>
     </select>
     <select id="radarColour" aria-label="Radar colour table" title="Radar colour table">
-      <option value="1">Radar: Original</option>
-      <option value="2" selected>Radar: Universal Blue</option>
-      <option value="3">Radar: TITAN</option>
-      <option value="4">Radar: Weather Channel</option>
-      <option value="5">Radar: Meteored</option>
-      <option value="6">Radar: NEXRAD Level III</option>
-      <option value="7">Radar: SELEX Rainbow</option>
-      <option value="8">Radar: Dark Sky</option>
+      <option value="universal" selected>Radar: Universal Blue</option>
+      <option value="storm">Radar: Storm</option>
+      <option value="warm">Radar: Warm</option>
+      <option value="vivid">Radar: Vivid</option>
+      <option value="highcontrast">Radar: High Contrast</option>
+      <option value="mono">Radar: Monochrome</option>
     </select>
     <select id="sensitivity" aria-label="Warning sensitivity">
       <option value="strict" selected>Balanced calibrated thresholds</option>
@@ -2272,15 +2270,30 @@ button[aria-label="Legend"]{
   const status=document.getElementById('status');
   const opacityEl=document.getElementById('opacity');
   const radarColourEl=document.getElementById('radarColour');
-  let displayRadarColour=Number(localStorage.getItem('gwrRadarColour') || 2);
-  if(!Number.isInteger(displayRadarColour) || displayRadarColour < 1 || displayRadarColour > 8){
-    displayRadarColour=2;
-  }
-  if(radarColourEl){
-    radarColourEl.value=String(displayRadarColour);
-  }
+  let displayRadarColour=localStorage.getItem('gwrRadarColour') || 'universal';
 
-  const basemapEl=document.getElementById('basemap');
+  const radarColourFilters={
+    universal:'none',
+    storm:'hue-rotate(78deg) saturate(1.55) contrast(1.08)',
+    warm:'hue-rotate(155deg) saturate(1.7) contrast(1.10)',
+    vivid:'saturate(2.15) contrast(1.18) brightness(1.04)',
+    highcontrast:'saturate(1.55) contrast(1.48) brightness(.96)',
+    mono:'grayscale(1) contrast(1.35) brightness(1.08)'
+  };
+
+  function applyRadarColour(){
+    if(!radarColourFilters[displayRadarColour]){
+      displayRadarColour='universal';
+    }
+    if(radarColourEl){
+      radarColourEl.value=displayRadarColour;
+    }
+    const radarPane=map.getPane('radarPane');
+    if(radarPane){
+      radarPane.style.filter=radarColourFilters[displayRadarColour];
+    }
+  }
+const basemapEl=document.getElementById('basemap');
   basemapEl.value='dark';
   const sensitivityEl=document.getElementById('sensitivity');
 
@@ -2360,7 +2373,7 @@ button[aria-label="Legend"]{
   summary.addTo(map);
 
   function radarUrl(frame){
-    return `${host}${frame.path}/256/{z}/{x}/{y}/${displayRadarColour}/1_1.png`;
+    return `${host}${frame.path}/256/{z}/{x}/{y}/2/1_1.png`;
   }
 
   function showFrame(i){
@@ -2386,15 +2399,14 @@ button[aria-label="Legend"]{
 
   if(radarColourEl){
     radarColourEl.addEventListener('change',()=>{
-      displayRadarColour=Number(radarColourEl.value) || 2;
-      localStorage.setItem('gwrRadarColour',String(displayRadarColour));
-      if(frames.length){
-        showFrame(frameIndex);
-      }
+      displayRadarColour=radarColourEl.value;
+      localStorage.setItem('gwrRadarColour',displayRadarColour);
+      applyRadarColour();
     });
   }
 
-  function startAnimation(){
+  applyRadarColour();
+function startAnimation(){
     clearInterval(timer);
     timer=setInterval(()=>showFrame(frameIndex>=frames.length-1?0:frameIndex+1),900);
   }

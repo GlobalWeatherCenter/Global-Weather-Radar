@@ -341,6 +341,12 @@ button.primary{background:#38bdf8;color:#062033;border-color:transparent;font-we
 }
 .leaflet-container.draw-mode{
   cursor:crosshair!important;
+  touch-action:none!important;
+  -webkit-user-select:none!important;
+  user-select:none!important;
+}
+.draw-control{
+  pointer-events:auto;
 }
 
 </style>
@@ -394,6 +400,8 @@ button.primary{background:#38bdf8;color:#062033;border-color:transparent;font-we
   map.createPane('radarPane');
   map.getPane('radarPane').style.zIndex='350';
   map.createPane('warningPane');
+  map.createPane('drawingPane');
+  map.getPane('drawingPane').style.zIndex='720';
   map.getPane('warningPane').style.zIndex='650';
 
   const basemaps={
@@ -498,11 +506,12 @@ button.primary{background:#38bdf8;color:#062033;border-color:transparent;font-we
 
 
   // ------------------------------------------------------------
-  // Freehand drawing tool
+  // Freehand drawing tool — Pointer Events version
+  // Reliable for mouse, touch and Apple Pencil.
   // ------------------------------------------------------------
   const drawingLayer=L.layerGroup().addTo(map);
   let drawingMode=false;
-  let isDrawing=false;
+  let drawingPointerId=null;
   let currentStroke=null;
   let currentStrokePoints=[];
   let drawColour='#ff2d2d';
@@ -515,7 +524,7 @@ button.primary{background:#38bdf8;color:#062033;border-color:transparent;font-we
       <div class="draw-panel" hidden>
         <div class="draw-head">
           <strong>Draw on radar</strong>
-          <button type="button" class="draw-close" aria-label="Clear drawings and close">×</button>
+          <button type="button" class="draw-close" aria-label="Remove drawings and exit">×</button>
         </div>
 
         <div class="draw-colours">
@@ -529,12 +538,14 @@ button.primary{background:#38bdf8;color:#062033;border-color:transparent;font-we
         </div>
 
         <div class="draw-actions">
-          <button type="button" class="draw-action draw-clear">Clear drawing</button>
+          <button type="button" class="draw-action draw-clear">Clear</button>
           <button type="button" class="draw-action primary draw-done">Done</button>
         </div>
 
         <div class="draw-help">
-          Drag your finger or mouse across the map to draw. <b>Done</b> keeps the drawing and returns to the radar. <b>×</b> removes all drawings and exits.
+          Draw directly on the map with your finger, Apple Pencil or mouse.<br>
+          <b>Done</b> keeps the drawing and returns to normal map mode.<br>
+          <b>×</b> clears everything and exits.
         </div>
       </div>`;
 
@@ -556,14 +567,18 @@ button.primary{background:#38bdf8;color:#062033;border-color:transparent;font-we
 
       if(on){
         map.dragging.disable();
+        map.boxZoom.disable();
+        map.keyboard.disable();
         if(map.touchZoom) map.touchZoom.disable();
         if(map.doubleClickZoom) map.doubleClickZoom.disable();
         if(map.scrollWheelZoom) map.scrollWheelZoom.disable();
       }else{
-        isDrawing=false;
+        drawingPointerId=null;
         currentStroke=null;
         currentStrokePoints=[];
         map.dragging.enable();
+        map.boxZoom.enable();
+        map.keyboard.enable();
         if(map.touchZoom) map.touchZoom.enable();
         if(map.doubleClickZoom) map.doubleClickZoom.enable();
         if(map.scrollWheelZoom) map.scrollWheelZoom.enable();
@@ -586,109 +601,86 @@ button.primary{background:#38bdf8;color:#062033;border-color:transparent;font-we
       wrap.querySelectorAll('.draw-colour').forEach(b=>b.classList.remove('selected'));
     });
 
-    clear.addEventListener('click',()=>{
-      drawingLayer.clearLayers();
-    });
+    clear.addEventListener('click',()=>drawingLayer.clearLayers());
 
-    done.addEventListener('click',()=>{
-      setDrawingMode(false);
-    });
+    done.addEventListener('click',()=>setDrawingMode(false));
 
     close.addEventListener('click',()=>{
       drawingLayer.clearLayers();
       setDrawingMode(false);
     });
 
-    // expose for map event handlers
-    wrap._setDrawingMode=setDrawingMode;
     return wrap;
   };
   drawControl.addTo(map);
 
-  function eventToLatLng(event){
-    const original=event.originalEvent||event;
+  const drawMapContainer=map.getContainer();
 
-    if(original.touches && original.touches.length){
-      const touch=original.touches[0];
-      const rect=map.getContainer().getBoundingClientRect();
-      const point=L.point(touch.clientX-rect.left,touch.clientY-rect.top);
-      return map.containerPointToLatLng(point);
-    }
-
-    if(original.changedTouches && original.changedTouches.length){
-      const touch=original.changedTouches[0];
-      const rect=map.getContainer().getBoundingClientRect();
-      const point=L.point(touch.clientX-rect.left,touch.clientY-rect.top);
-      return map.containerPointToLatLng(point);
-    }
-
-    if(event.latlng) return event.latlng;
-
-    const rect=map.getContainer().getBoundingClientRect();
-    const point=L.point(original.clientX-rect.left,original.clientY-rect.top);
+  function pointerToLatLng(event){
+    const rect=drawMapContainer.getBoundingClientRect();
+    const point=L.point(
+      event.clientX-rect.left,
+      event.clientY-rect.top
+    );
     return map.containerPointToLatLng(point);
   }
 
-  function beginStroke(event){
+  function beginPointerStroke(event){
     if(!drawingMode) return;
+    if(event.pointerType==='mouse' && event.button!==0) return;
 
-    const original=event.originalEvent||event;
-    if(original.cancelable) original.preventDefault();
+    event.preventDefault();
+    event.stopPropagation();
 
-    isDrawing=true;
-    currentStrokePoints=[eventToLatLng(event)];
+    drawingPointerId=event.pointerId;
+    try{drawMapContainer.setPointerCapture(event.pointerId)}catch(e){}
+
+    currentStrokePoints=[pointerToLatLng(event)];
     currentStroke=L.polyline(currentStrokePoints,{
       color:drawColour,
-      weight:5,
-      opacity:.96,
+      weight:6,
+      opacity:.98,
       lineCap:'round',
       lineJoin:'round',
-      pane:'warningPane',
-      interactive:false
+      pane:'drawingPane',
+      interactive:false,
+      smoothFactor:.35
     }).addTo(drawingLayer);
   }
 
-  function extendStroke(event){
-    if(!drawingMode || !isDrawing || !currentStroke) return;
+  function movePointerStroke(event){
+    if(!drawingMode || drawingPointerId!==event.pointerId || !currentStroke) return;
 
-    const original=event.originalEvent||event;
-    if(original.cancelable) original.preventDefault();
+    event.preventDefault();
+    event.stopPropagation();
 
-    const latlng=eventToLatLng(event);
+    const latlng=pointerToLatLng(event);
     const last=currentStrokePoints[currentStrokePoints.length-1];
 
-    // Avoid thousands of nearly-identical points.
-    const pixelA=map.latLngToContainerPoint(last);
-    const pixelB=map.latLngToContainerPoint(latlng);
-    if(pixelA.distanceTo(pixelB)<3) return;
+    const a=map.latLngToContainerPoint(last);
+    const b=map.latLngToContainerPoint(latlng);
+    if(a.distanceTo(b)<2.5) return;
 
     currentStrokePoints.push(latlng);
     currentStroke.setLatLngs(currentStrokePoints);
   }
 
-  function endStroke(event){
-    if(!drawingMode || !isDrawing) return;
-    const original=event.originalEvent||event;
-    if(original.cancelable) original.preventDefault();
+  function endPointerStroke(event){
+    if(drawingPointerId!==event.pointerId) return;
 
-    isDrawing=false;
+    event.preventDefault();
+    event.stopPropagation();
+
+    try{drawMapContainer.releasePointerCapture(event.pointerId)}catch(e){}
+    drawingPointerId=null;
     currentStroke=null;
     currentStrokePoints=[];
   }
 
-  // Mouse drawing
-  map.on('mousedown',beginStroke);
-  map.on('mousemove',extendStroke);
-  map.on('mouseup',endStroke);
-  map.on('mouseout',endStroke);
-
-  // Touch / stylus drawing
-  const mapContainer=map.getContainer();
-  mapContainer.addEventListener('touchstart',beginStroke,{passive:false});
-  mapContainer.addEventListener('touchmove',extendStroke,{passive:false});
-  mapContainer.addEventListener('touchend',endStroke,{passive:false});
-  mapContainer.addEventListener('touchcancel',endStroke,{passive:false});
-
+  drawMapContainer.addEventListener('pointerdown',beginPointerStroke,{passive:false});
+  drawMapContainer.addEventListener('pointermove',movePointerStroke,{passive:false});
+  drawMapContainer.addEventListener('pointerup',endPointerStroke,{passive:false});
+  drawMapContainer.addEventListener('pointercancel',endPointerStroke,{passive:false});
 
   const summary=L.control({position:'topright'});
   summary.onAdd=()=>{

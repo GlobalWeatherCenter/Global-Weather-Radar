@@ -258,9 +258,14 @@ button.primary{background:#38bdf8;color:#062033;border-color:transparent;font-we
       <option value=".58">Radar 58%</option>
       <option value=".38">Radar 38%</option>
     </select>
+    <select id="basemap" aria-label="Basemap style">
+      <option value="voyager" selected>Map: Voyager</option>
+      <option value="light">Map: Light</option>
+      <option value="dark">Map: Dark Matter</option>
+    </select>
     <select id="sensitivity" aria-label="Warning sensitivity">
-      <option value="strict" selected>Balanced storm thresholds</option>
-      <option value="veryStrict">Strict storm thresholds</option>
+      <option value="strict" selected>Calibrated storm thresholds</option>
+      <option value="veryStrict">Strict calibrated thresholds</option>
     </select>
     <a class="youtube-link" href="https://www.youtube.com/@Global_Weather_Center/featured" target="_blank" rel="noopener noreferrer">
       <svg class="youtube-svg" viewBox="0 0 24 24" aria-hidden="true">
@@ -279,17 +284,44 @@ button.primary{background:#38bdf8;color:#062033;border-color:transparent;font-we
 (() => {
   const map=L.map('map',{zoomControl:true,minZoom:2,maxZoom:18,worldCopyJump:true}).setView([30,0],3);
   
+  map.getPane('tilePane').style.zIndex='200';
   map.createPane('radarPane');
   map.getPane('radarPane').style.zIndex='350';
   map.createPane('warningPane');
   map.getPane('warningPane').style.zIndex='650';
 
-  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{
-    maxZoom:19,attribution:'© OpenStreetMap contributors'
-  }).addTo(map);
+  const basemaps={
+    voyager:L.tileLayer(
+      'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+      {
+        subdomains:'abcd',
+        maxZoom:20,
+        attribution:'© OpenStreetMap contributors © CARTO'
+      }
+    ),
+    light:L.tileLayer(
+      'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+      {
+        subdomains:'abcd',
+        maxZoom:20,
+        attribution:'© OpenStreetMap contributors © CARTO'
+      }
+    ),
+    dark:L.tileLayer(
+      'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+      {
+        subdomains:'abcd',
+        maxZoom:20,
+        attribution:'© OpenStreetMap contributors © CARTO'
+      }
+    )
+  };
+
+  let activeBasemap=basemaps.voyager.addTo(map);
 
   const status=document.getElementById('status');
   const opacityEl=document.getElementById('opacity');
+  const basemapEl=document.getElementById('basemap');
   const sensitivityEl=document.getElementById('sensitivity');
 
   let frames=[],host='',frameIndex=0,radarLayer=null,timer=null,playing=true;
@@ -703,14 +735,17 @@ button.primary{background:#38bdf8;color:#062033;border-color:transparent;font-we
     try{
       const currentFrame=frames[frames.length-1];
       const previousFrame=frames[Math.max(0,frames.length-3)];
-      const [current,previous]=await Promise.all([
+      const olderFrame=frames[Math.max(0,frames.length-5)];
+      const [current,previous,olderPrevious]=await Promise.all([
         analyseFrame(currentFrame,analysisZoom,tileX,tileY),
-        analyseFrame(previousFrame,analysisZoom,tileX,tileY)
+        analyseFrame(previousFrame,analysisZoom,tileX,tileY),
+        analyseFrame(olderFrame,analysisZoom,tileX,tileY)
       ]);
 
       const issued=[];
       for(const cluster of current){
         const older=matchPrevious(cluster,previous);
+        const oldest=older ? matchPrevious(older,olderPrevious) : null;
         let dx=older?cluster.x-older.x:7;
         let dy=older?cluster.y-older.y:-3;
         if(Math.hypot(dx,dy)<2){dx=7;dy=-3}
@@ -724,57 +759,100 @@ button.primary{background:#38bdf8;color:#062033;border-color:transparent;font-we
         const strict=sensitivityEl.value==='veryStrict';
 
         const olderMatch=older || null;
-        const persistent=!!olderMatch;
-        const movementPixels=persistent
-          ? Math.hypot(cluster.x-olderMatch.x,cluster.y-olderMatch.y)
+        const oldestMatch=oldest || null;
+
+        const twoFramePersistent=!!olderMatch;
+        const threeFramePersistent=!!olderMatch && !!oldestMatch;
+
+        const movement1=twoFramePersistent
+          ? {dx:cluster.x-olderMatch.x,dy:cluster.y-olderMatch.y}
+          : null;
+        const movement2=threeFramePersistent
+          ? {dx:olderMatch.x-oldestMatch.x,dy:olderMatch.y-oldestMatch.y}
           : null;
 
-        // Reflectivity can indicate an intense convective core, but not prove lightning.
-        const lightningDetected =
-          cluster.maxDbz >= (strict?50:47) &&
-          cluster.p90Dbz >= (strict?47:45) &&
-          cluster.n >= (strict?14:11);
+        const movementPixels=movement1
+          ? Math.hypot(movement1.dx,movement1.dy)
+          : null;
 
-        // Hail categories are conservative reflectivity-only signals.
-        // Dual-polarisation data would be required to confirm hail or determine size.
+        const olderMovementPixels=movement2
+          ? Math.hypot(movement2.dx,movement2.dy)
+          : null;
+
+        let motionConsistency=0;
+        if(movement1 && movement2){
+          const dot=movement1.dx*movement2.dx+movement1.dy*movement2.dy;
+          const denom=Math.max(
+            1,
+            Math.hypot(movement1.dx,movement1.dy)*
+            Math.hypot(movement2.dx,movement2.dy)
+          );
+          motionConsistency=Math.max(-1,Math.min(1,dot/denom));
+        }
+
+        const stableMotion =
+          threeFramePersistent &&
+          motionConsistency >= (strict?.78:.62) &&
+          movementPixels >= 1 &&
+          movementPixels <= 48 &&
+          olderMovementPixels >= 1 &&
+          olderMovementPixels <= 48;
+
+        // Reflectivity-only lightning likelihood.
+        const lightningDetected =
+          twoFramePersistent &&
+          cluster.maxDbz >= (strict?52:49) &&
+          cluster.p90Dbz >= (strict?48:46) &&
+          cluster.n >= (strict?15:12) &&
+          olderMatch.maxDbz >= (strict?48:46) &&
+          olderMatch.p90Dbz >= (strict?45:43);
+
+        // Conservative hail signals using calibrated dBZ, core area,
+        // persistence and compactness. These do not confirm hail size.
         const smallHail =
-          persistent &&
-          cluster.maxDbz >= (strict?57:55) &&
-          cluster.p90Dbz >= (strict?52:50) &&
-          cluster.core50 >= (strict?12:8) &&
-          olderMatch.maxDbz >= (strict?54:52) &&
-          olderMatch.p90Dbz >= (strict?49:47);
+          twoFramePersistent &&
+          cluster.maxDbz >= (strict?58:56) &&
+          cluster.p90Dbz >= (strict?53:51) &&
+          cluster.core50 >= (strict?14:10) &&
+          cluster.compactness >= (strict?.24:.20) &&
+          olderMatch.maxDbz >= (strict?55:53) &&
+          olderMatch.p90Dbz >= (strict?50:48);
 
         const mediumHail =
-          persistent &&
-          cluster.maxDbz >= (strict?62:60) &&
-          cluster.p90Dbz >= (strict?56:54) &&
-          cluster.core55 >= (strict?9:6) &&
-          olderMatch.maxDbz >= (strict?59:57);
+          threeFramePersistent &&
+          cluster.maxDbz >= (strict?63:61) &&
+          cluster.p90Dbz >= (strict?58:56) &&
+          cluster.core55 >= (strict?10:7) &&
+          cluster.compactness >= (strict?.27:.22) &&
+          olderMatch.maxDbz >= (strict?60:58) &&
+          oldestMatch.maxDbz >= (strict?57:55);
 
         const largeHail =
-          persistent &&
+          threeFramePersistent &&
           cluster.maxDbz >= 65 &&
-          cluster.p90Dbz >= (strict?61:59) &&
-          cluster.core60 >= (strict?7:4) &&
-          olderMatch.maxDbz >= (strict?62:60);
+          cluster.p90Dbz >= (strict?62:60) &&
+          cluster.core60 >= (strict?7:5) &&
+          cluster.compactness >= (strict?.30:.25) &&
+          olderMatch.maxDbz >= (strict?63:61) &&
+          oldestMatch.maxDbz >= (strict?60:58);
 
         const hailType =
-          largeHail ? 'Large hail signal signal' :
-          mediumHail ? 'Medium hail signal signal' :
-          smallHail ? 'Small hail signal signal' :
+          largeHail ? 'Large hail signal' :
+          mediumHail ? 'Medium hail signal' :
+          smallHail ? 'Small hail signal' :
           null;
 
-        // Reflectivity-only hook candidate. This is deliberately strict and
-        // never presented as a confirmed tornado warning.
+        // Reflectivity-only hook candidate: requires persistence, a curved
+        // asymmetric echo, compactness and consistent movement.
         const hook =
-          persistent &&
+          threeFramePersistent &&
+          stableMotion &&
           hasHookShape(cluster) &&
-          cluster.maxDbz >= (strict?55:52) &&
-          cluster.p90Dbz >= (strict?49:47) &&
-          cluster.compactness >= .18 &&
-          movementPixels!==null &&
-          movementPixels<=55;
+          hasHookShape(olderMatch) &&
+          cluster.maxDbz >= (strict?57:54) &&
+          cluster.p90Dbz >= (strict?51:49) &&
+          cluster.compactness >= (strict?.24:.20) &&
+          cluster.n >= (strict?15:12);
 
         if(!lightningDetected && !hailType && !hook) continue;
 
@@ -783,13 +861,24 @@ button.primary{background:#38bdf8;color:#062033;border-color:transparent;font-we
         if(hailType) hazards.push(hailType);
         if(hook) hazards.push('Hook echo candidate');
 
-        const persistenceScore=persistent?25:0;
-        const intensityScore=Math.min(40,Math.max(0,(cluster.maxDbz-45)*2));
-        const coreScore=Math.min(25,cluster.core50*1.5);
-        const structureScore=Math.min(10,cluster.compactness*20);
-        const confidence=Math.round(Math.min(95,persistenceScore+intensityScore+coreScore+structureScore));
+        const persistenceScore=
+          threeFramePersistent ? 30 :
+          twoFramePersistent ? 18 : 0;
 
-        // One polygon only: colour and label represent the highest detected signal.
+        const intensityScore=Math.min(35,Math.max(0,(cluster.maxDbz-45)*1.75));
+        const coreScore=Math.min(20,cluster.core50*1.25);
+        const structureScore=Math.min(10,cluster.compactness*25);
+        const motionScore=stableMotion?5:0;
+
+        const confidence=Math.round(Math.min(
+          97,
+          persistenceScore+
+          intensityScore+
+          coreScore+
+          structureScore+
+          motionScore
+        ));
+
         const primary =
           hook ? {
             label:'Hook echo candidate',
@@ -797,17 +886,17 @@ button.primary{background:#38bdf8;color:#062033;border-color:transparent;font-we
             padding:13
           } :
           largeHail ? {
-            label:'Large hail signal signal',
+            label:'Large hail signal',
             colour:'#ef4444',
             padding:12
           } :
           mediumHail ? {
-            label:'Medium hail signal signal',
+            label:'Medium hail signal',
             colour:'#f97316',
             padding:11
           } :
           smallHail ? {
-            label:'Small hail signal signal',
+            label:'Small hail signal',
             colour:'#22c55e',
             padding:10
           } : {
@@ -849,7 +938,9 @@ button.primary{background:#38bdf8;color:#062033;border-color:transparent;font-we
               <b>Detected signals:</b><br>
               ${hazards.map(h=>`• ${h}`).join('<br>')}<br><br>
               <b>Maximum reflectivity:</b> ${cluster.maxDbz} dBZ<br>
-              <b>Core confidence:</b> ${confidence}%<br><br>
+              <b>Core confidence:</b> ${confidence}%<br>
+              <b>Persistence:</b> ${threeFramePersistent?'3 frames':twoFramePersistent?'2 frames':'1 frame'}<br>
+              <b>Motion consistency:</b> ${stableMotion?'High':threeFramePersistent?'Low':'Unavailable'}<br><br>
               Finding nearby places…
             </div>
           `).openPopup();
@@ -863,7 +954,9 @@ button.primary{background:#38bdf8;color:#062033;border-color:transparent;font-we
               ${hazards.map(h=>`• ${h}`).join('<br>')}<br><br>
               <b>Maximum reflectivity:</b> ${cluster.maxDbz} dBZ<br>
               <b>90th-percentile core:</b> ${cluster.p90Dbz} dBZ<br>
-              <b>Core confidence:</b> ${confidence}%<br><br>
+              <b>Core confidence:</b> ${confidence}%<br>
+              <b>Persistence:</b> ${threeFramePersistent?'3 frames':twoFramePersistent?'2 frames':'1 frame'}<br>
+              <b>Motion consistency:</b> ${stableMotion?'High':threeFramePersistent?'Low':'Unavailable'}<br><br>
               <b>Nearby places:</b><br>
               ${places.length?places.map(p=>`• ${p}`).join('<br>'):'No nearby named places returned.'}<br><br>
               The outline follows a persistent calibrated-reflectivity core. Reflectivity alone cannot confirm hail, lightning or tornadoes.
@@ -895,6 +988,14 @@ button.primary{background:#38bdf8;color:#062033;border-color:transparent;font-we
     document.getElementById('summary').innerHTML='<b>Polygons cleared.</b>';
   });
   opacityEl.addEventListener('change',()=>{if(radarLayer)radarLayer.setOpacity(Number(opacityEl.value))});
+
+  basemapEl.addEventListener('change',()=>{
+    if(activeBasemap) map.removeLayer(activeBasemap);
+    activeBasemap=basemaps[basemapEl.value] || basemaps.voyager;
+    activeBasemap.addTo(map);
+    activeBasemap.bringToBack();
+  });
+
 
   loadRadar();
 })();

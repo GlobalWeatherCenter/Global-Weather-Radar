@@ -2748,6 +2748,8 @@ button[aria-label="Legend"],
   const gwrSiteLayer=L.layerGroup().addTo(map);
   let gwrSelectedSiteId='';
   let gwrSingleSiteRadarLayer=null;
+  let gwrSiteReflectivityLayer=null;
+  let gwrSiteVelocityLayer=null;
   let gwrSiteMode=true;
   let gwrSiteProductCode='N0B';
 
@@ -2774,6 +2776,14 @@ button[aria-label="Legend"],
 
       marker.on('click',()=>{
         gwrSelectedSiteId=site.id;
+
+        if(gwrReflectivityBtn){
+          gwrReflectivityBtn.classList.toggle('active',gwrSiteProductCode==='N0B');
+        }
+        if(gwrVelocityBtn){
+          gwrVelocityBtn.classList.toggle('active',gwrSiteProductCode==='N0U');
+        }
+
         gwrRenderBuiltInSites();
         gwrLoadSingleSite(site,true);
       });
@@ -2783,10 +2793,28 @@ button[aria-label="Legend"],
   }
 
   function gwrClearSingleSiteRadar(){
-    if(gwrSingleSiteRadarLayer && map.hasLayer(gwrSingleSiteRadarLayer)){
-      map.removeLayer(gwrSingleSiteRadarLayer);
+    for(const layer of [gwrSingleSiteRadarLayer,gwrSiteReflectivityLayer,gwrSiteVelocityLayer]){
+      if(layer && map.hasLayer(layer)){
+        try{map.removeLayer(layer)}catch(error){}
+      }
     }
+
+    map.eachLayer(layer=>{
+      const url=String(layer?._url || '');
+      const attribution=String(layer?.options?.attribution || '').toLowerCase();
+
+      if(
+        url.includes('/cache/tile.py/1.0.0/ridge::') ||
+        url.includes('mesonet.agron.iastate.edu/cgi-bin/wms/nexrad/ridge.cgi') ||
+        attribution.includes('single-site nexrad')
+      ){
+        try{map.removeLayer(layer)}catch(error){}
+      }
+    });
+
     gwrSingleSiteRadarLayer=null;
+    gwrSiteReflectivityLayer=null;
+    gwrSiteVelocityLayer=null;
   }
 
   
@@ -2817,16 +2845,9 @@ button[aria-label="Legend"],
   }
 
 function gwrLoadSingleSite(site,zoomToSite){
-    const product=gwrSiteProductCode || 'N0B';
-    const label=product==='N0U'?'Hi-Res Velocity':'Hi-Res Reflectivity';
-
     gwrSiteMode=true;
-
-    // Remove every RainViewer layer, including orphaned layers created by old startup code.
     gwrPurgeGlobalRainViewer();
 
-    // Single-site products already have their own proper NEXRAD colour tables.
-    // Do NOT apply the Global Radar CSS filter to reflectivity or velocity.
     const siteRadarPane=map.getPane('radarPane');
     if(siteRadarPane){
       siteRadarPane.style.filter='none';
@@ -2834,60 +2855,83 @@ function gwrLoadSingleSite(site,zoomToSite){
 
     gwrClearSingleSiteRadar();
 
-    const url='https://mesonet.agron.iastate.edu/cgi-bin/wms/nexrad/ridge.cgi';
+    const targetOpacity=Number(document.getElementById('opacity')?.value || .72);
 
-    // Official warnings are automatic in single-site radar mode.
-    gwrEnableAutoNwsWarnings();
+    const reflUrl=
+      `https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0/ridge::${site.id}-N0B-0/{z}/{x}/{y}.png`;
+    const velUrl=
+      `https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0/ridge::${site.id}-N0U-0/{z}/{x}/{y}.png`;
 
-    // Completely new layer each time, with sector/product passed as WMS params.
-    gwrSingleSiteRadarLayer=L.tileLayer.wms(url,{
-      layers:'single',
-      sector:site.id,
-      prod:product,
-      format:'image/png',
-      transparent:true,
-      version:'1.1.1',
+    const commonOptions={
       tileSize:256,
       minZoom:3,
       maxZoom:18,
-      keepBuffer:6,
+      maxNativeZoom:12,
+      keepBuffer:8,
       updateWhenZooming:false,
       updateWhenIdle:true,
-      opacity:Number(document.getElementById('opacity')?.value || .72),
       pane:'radarPane',
       attribution:'Single-site NEXRAD © Iowa Environmental Mesonet'
-    }).addTo(map);
+    };
 
-    gwrSingleSiteRadarLayer.setParams({
-      layers:'single',
-      sector:site.id,
-      prod:product,
-      gwr:Date.now()
-    },false);
-
-    gwrSingleSiteRadarLayer.redraw();
-
-    gwrSingleSiteRadarLayer.on('loading',()=>{
-      const st=document.getElementById('status');
-      if(st) st.textContent=`USA NEXRAD: ${site.id} — loading ${label}…`;
+    gwrSiteReflectivityLayer=L.tileLayer(reflUrl,{
+      ...commonOptions,
+      opacity:gwrSiteProductCode==='N0B'?targetOpacity:0
     });
 
-    gwrSingleSiteRadarLayer.on('load',()=>{
-      const st=document.getElementById('status');
-      if(st) st.textContent=`USA NEXRAD: ${site.id} — ${label}`;
+    gwrSiteVelocityLayer=L.tileLayer(velUrl,{
+      ...commonOptions,
+      opacity:gwrSiteProductCode==='N0U'?targetOpacity:0
     });
 
-    gwrSingleSiteRadarLayer.on('tileerror',()=>{
-      const st=document.getElementById('status');
-      if(st) st.textContent=`${site.id} ${label} failed to load.`;
+    // Load BOTH products for this exact site immediately.
+    gwrSiteReflectivityLayer.addTo(map);
+    gwrSiteVelocityLayer.addTo(map);
+
+    gwrSingleSiteRadarLayer=
+      gwrSiteProductCode==='N0U'
+        ? gwrSiteVelocityLayer
+        : gwrSiteReflectivityLayer;
+
+    if(typeof gwrEnableAutoNwsWarnings==='function'){
+      gwrEnableAutoNwsWarnings();
+    }
+
+    gwrSiteReflectivityLayer.on('load',()=>{
+      if(gwrSiteProductCode==='N0B'){
+        const st=document.getElementById('status');
+        if(st) st.textContent=`USA NEXRAD: ${site.id} — Hi-Res Reflectivity`;
+      }
+    });
+
+    gwrSiteVelocityLayer.on('load',()=>{
+      if(gwrSiteProductCode==='N0U'){
+        const st=document.getElementById('status');
+        if(st) st.textContent=`USA NEXRAD: ${site.id} — Hi-Res Velocity`;
+      }
+    });
+
+    gwrSiteReflectivityLayer.on('tileerror',()=>{
+      if(gwrSiteProductCode==='N0B'){
+        const st=document.getElementById('status');
+        if(st) st.textContent=`${site.id} Reflectivity failed to load.`;
+      }
+    });
+
+    gwrSiteVelocityLayer.on('tileerror',()=>{
+      if(gwrSiteProductCode==='N0U'){
+        const st=document.getElementById('status');
+        if(st) st.textContent=`${site.id} Velocity failed to load.`;
+      }
     });
 
     if(zoomToSite){
       map.setView([site.lat,site.lon],8);
     }
 
+    const label=gwrSiteProductCode==='N0U'?'Hi-Res Velocity':'Hi-Res Reflectivity';
     const st=document.getElementById('status');
-    if(st) st.textContent=`USA NEXRAD: ${site.id} — ${label}`;
+    if(st) st.textContent=`USA NEXRAD: ${site.id} — loading ${label}…`;
   }
 
   // Render dots synchronously: no API request, no delay.
@@ -4638,6 +4682,8 @@ function startAnimation(){
   }
 
   function gwrSetProduct(product){
+    if(product!=='N0B' && product!=='N0U') return;
+
     gwrSiteProductCode=product;
 
     if(gwrReflectivityBtn){
@@ -4647,20 +4693,35 @@ function startAnimation(){
       gwrVelocityBtn.classList.toggle('active',product==='N0U');
     }
 
-    // Destroy current site layer before rebuilding the requested product.
-    gwrClearSingleSiteRadar();
-    gwrPurgeGlobalRainViewer();
-
     if(!gwrSelectedSiteId){
       const st=document.getElementById('status');
       if(st) st.textContent='Tap a radar circle first.';
       return;
     }
 
-    const site=gwrBuiltInSites.find(s=>s.id===gwrSelectedSiteId);
-    if(site){
-      gwrLoadSingleSite(site,false);
+    const targetOpacity=Number(document.getElementById('opacity')?.value || .72);
+
+    // Both products already exist for this same radar site.
+    if(gwrSiteReflectivityLayer){
+      gwrSiteReflectivityLayer.setOpacity(product==='N0B'?targetOpacity:0);
     }
+    if(gwrSiteVelocityLayer){
+      gwrSiteVelocityLayer.setOpacity(product==='N0U'?targetOpacity:0);
+    }
+
+    gwrSingleSiteRadarLayer=
+      product==='N0U'
+        ? gwrSiteVelocityLayer
+        : gwrSiteReflectivityLayer;
+
+    if(gwrSingleSiteRadarLayer?.bringToFront){
+      gwrSingleSiteRadarLayer.bringToFront();
+    }
+
+    const site=gwrBuiltInSites.find(s=>s.id===gwrSelectedSiteId);
+    const label=product==='N0U'?'Hi-Res Velocity':'Hi-Res Reflectivity';
+    const st=document.getElementById('status');
+    if(st && site) st.textContent=`USA NEXRAD: ${site.id} — ${label}`;
   }
 
   if(gwrReflectivityBtn){

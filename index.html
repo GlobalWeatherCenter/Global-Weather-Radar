@@ -2119,94 +2119,57 @@ button[aria-label="Legend"]{
 }
 
 
-/* ===== V67 MOVE FUNCTION GROUP FURTHER DOWN, KEEP IN LINE ===== */
-#gwrDrawTool,
-#gwrLayersTool,
-#gwrMeasureTool{
-  top:285px!important;
-}
-
+/* ===== V67 MOVE FUNCTION GROUP TO BOTTOM MIDDLE ===== */
 #gwrDrawTool{
-  right:145px!important;
-  left:auto!important;
+  top:auto!important;
+  bottom:28px!important;
+  left:calc(50% - 82px)!important;
+  right:auto!important;
 }
 
 #gwrLayersTool{
-  right:90px!important;
-  left:auto!important;
+  top:auto!important;
+  bottom:28px!important;
+  left:calc(50% - 24px)!important;
+  right:auto!important;
 }
 
 #gwrMeasureTool{
-  right:35px!important;
-  left:auto!important;
+  top:auto!important;
+  bottom:28px!important;
+  left:calc(50% + 34px)!important;
+  right:auto!important;
 }
 
-/* Panels still open underneath */
+/* Panels open upward so they don't run off the bottom */
 #gwrDrawPanel,
 #gwrLayersPanel,
 #gwrMeasurePanel{
-  top:54px!important;
+  top:auto!important;
+  bottom:54px!important;
 }
 
-/* Keep SPC menu usable */
+/* Keep SPC menu scrollable inside the screen */
 #gwrLayersPanel{
-  max-height:calc(100vh - 380px)!important;
+  max-height:calc(100vh - 120px)!important;
   overflow-y:auto!important;
   -webkit-overflow-scrolling:touch!important;
 }
 
 @media(max-width:900px){
-  #gwrDrawTool,
-  #gwrLayersTool,
-  #gwrMeasureTool{
-    top:280px!important;
-  }
-
-  #gwrLayersPanel{
-    max-height:calc(100vh - 375px)!important;
-  }
-}
-
-
-/* ===== V68 NUDGE FUNCTION GROUP A LITTLE DOWN AND LEFT ===== */
-#gwrDrawTool,
-#gwrLayersTool,
-#gwrMeasureTool{
-  top:298px!important;
-}
-
-#gwrDrawTool{
-  right:165px!important;
-  left:auto!important;
-}
-
-#gwrLayersTool{
-  right:110px!important;
-  left:auto!important;
-}
-
-#gwrMeasureTool{
-  right:55px!important;
-  left:auto!important;
-}
-
-@media(max-width:900px){
-  #gwrDrawTool,
-  #gwrLayersTool,
-  #gwrMeasureTool{
-    top:293px!important;
-  }
-
   #gwrDrawTool{
-    right:165px!important;
+    bottom:24px!important;
+    left:calc(50% - 82px)!important;
   }
 
   #gwrLayersTool{
-    right:110px!important;
+    bottom:24px!important;
+    left:calc(50% - 24px)!important;
   }
 
   #gwrMeasureTool{
-    right:55px!important;
+    bottom:24px!important;
+    left:calc(50% + 34px)!important;
   }
 }
 

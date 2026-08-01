@@ -3424,6 +3424,11 @@ const basemapEl=document.getElementById('basemap');
   function gwrEnterSingleSitePaneMode(){
     gwrSingleSiteMode=true;
 
+    // Radar tower dots belong ONLY to single-site mode.
+    if(gwrRadarSiteLayer && !map.hasLayer(gwrRadarSiteLayer)){
+      gwrRadarSiteLayer.addTo(map);
+    }
+
     const globalPane=map.getPane('globalRadarPane');
     const sitePane=map.getPane('siteRadarPane');
 
@@ -3445,6 +3450,11 @@ const basemapEl=document.getElementById('basemap');
 
   function gwrEnterGlobalPaneMode(){
     gwrSingleSiteMode=false;
+
+    // Global radar must have NO single-site radar tower dots.
+    if(gwrRadarSiteLayer && map.hasLayer(gwrRadarSiteLayer)){
+      map.removeLayer(gwrRadarSiteLayer);
+    }
 
     const globalPane=map.getPane('globalRadarPane');
     const sitePane=map.getPane('siteRadarPane');

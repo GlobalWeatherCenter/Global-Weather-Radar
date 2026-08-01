@@ -308,11 +308,11 @@ button.primary{background:#38bdf8;color:#062033;border-color:transparent;font-we
 </div>
 <div id="warn" class="legend-page active">
 <div class="legend-list">
-<div><span class="legend-swatch lightning-swatch"></span>Lightning warning</div>
-<div><span class="legend-swatch small-hail-swatch"></span>Small Hail</div>
-<div><span class="legend-swatch medium-hail-swatch"></span>Medium Hail</div>
-<div><span class="legend-swatch large-hail-swatch"></span>Large Hail</div>
-<div><span class="legend-swatch tornado-swatch"></span>Tornado Candidate</div>
+<div><span class="legend-swatch lightning-swatch"></span>Lightning likelihood</div>
+<div><span class="legend-swatch small-hail-swatch"></span>Small hail signal signal</div>
+<div><span class="legend-swatch medium-hail-swatch"></span>Medium hail signal signal</div>
+<div><span class="legend-swatch large-hail-swatch"></span>Large hail signal signal</div>
+<div><span class="legend-swatch tornado-swatch"></span>Hook echo candidate</div>
 
 </div>
 </div>
@@ -431,7 +431,7 @@ button.primary{background:#38bdf8;color:#062033;border-color:transparent;font-we
   async function loadTile(frame,z,x,y){
     const count=Math.pow(2,z);
     const wrappedX=((x%count)+count)%count;
-    const url=`${host}${frame.path}/256/${z}/${wrappedX}/${y}/2/1_1.png`;
+    const url=`${host}${frame.path}/256/${z}/${wrappedX}/${y}/2/0_0.png`;
     return await new Promise((resolve,reject)=>{
       const image=new Image();
       image.crossOrigin='anonymous';
@@ -448,41 +448,104 @@ button.primary{background:#38bdf8;color:#062033;border-color:transparent;font-we
     });
   }
 
-  function strengthAt(data,index){
+  // RainViewer Universal Blue colour table, mapped to calibrated dBZ.
+  // These high-reflectivity colours are the only ones used by the hazard detector.
+  const universalBlueDbz=[
+    [35,255,238,0],[36,255,224,0],[37,255,210,0],[38,255,197,0],
+    [39,255,183,0],[40,255,170,0],[41,255,159,0],[42,255,149,0],
+    [43,255,139,0],[44,255,129,0],[45,255,68,0],[46,242,54,0],
+    [47,230,40,0],[48,217,27,0],[49,205,13,0],[50,193,0,0],
+    [51,168,0,0],[52,143,0,0],[53,118,0,0],[54,93,0,0],
+    [55,255,170,255],[56,255,159,255],[57,255,149,255],
+    [58,255,139,255],[59,255,129,255],[60,255,119,255],
+    [61,255,108,255],[62,255,98,255],[63,255,88,255],
+    [64,255,78,255],[65,255,255,255]
+  ];
+
+  function dbzAt(data,index){
     const r=data[index],g=data[index+1],b=data[index+2],a=data[index+3];
-    if(a<30)return 0;
-    const max=Math.max(r,g,b),min=Math.min(r,g,b);
-    return (max-min)*0.72+max*0.28;
+    if(a<80)return null;
+
+    let bestDbz=null;
+    let bestDistance=Infinity;
+
+    for(const [dbz,cr,cg,cb] of universalBlueDbz){
+      const distance=(r-cr)*(r-cr)+(g-cg)*(g-cg)+(b-cb)*(b-cb);
+      if(distance<bestDistance){
+        bestDistance=distance;
+        bestDbz=dbz;
+      }
+    }
+
+    // Reject colours too far away from the official palette.
+    return bestDistance<=1800 ? bestDbz : null;
   }
 
   async function analyseFrame(frame,z,tileX,tileY){
     const image=await loadTile(frame,z,tileX,tileY);
-    const threshold=sensitivityEl.value==='veryStrict'?216:204;
+    const strict=sensitivityEl.value==='veryStrict';
+    const baseThreshold=strict?45:42;
     const points=[];
-    const step=5;
+    const step=3;
+
     for(let y=0;y<256;y+=step){
       for(let x=0;x<256;x+=step){
         const index=(y*256+x)*4;
-        const strength=strengthAt(image.data,index);
-        if(strength>=threshold)points.push({x,y,strength});
+        const dbz=dbzAt(image.data,index);
+        if(dbz!==null && dbz>=baseThreshold){
+          points.push({x,y,dbz});
+        }
       }
     }
 
     const clusters=[];
-    for(const point of points.sort((a,b)=>b.strength-a.strength).slice(0,700)){
-      let cluster=clusters.find(c=>Math.hypot(c.x-point.x,c.y-point.y)<28);
+    for(const point of points.sort((a,b)=>b.dbz-a.dbz).slice(0,1800)){
+      let cluster=clusters.find(c=>Math.hypot(c.x-point.x,c.y-point.y)<22);
+
       if(!cluster){
-        cluster={x:point.x,y:point.y,n:1,max:point.strength,points:[point]};
+        cluster={
+          x:point.x,
+          y:point.y,
+          n:1,
+          maxDbz:point.dbz,
+          values:[point.dbz],
+          points:[point]
+        };
         clusters.push(cluster);
       }else{
         cluster.x=(cluster.x*cluster.n+point.x)/(cluster.n+1);
         cluster.y=(cluster.y*cluster.n+point.y)/(cluster.n+1);
         cluster.n++;
-        cluster.max=Math.max(cluster.max,point.strength);
+        cluster.maxDbz=Math.max(cluster.maxDbz,point.dbz);
+        cluster.values.push(point.dbz);
         cluster.points.push(point);
       }
     }
-    return clusters.filter(c=>c.n>=10).slice(0,8);
+
+    for(const cluster of clusters){
+      cluster.values.sort((a,b)=>a-b);
+      const q=index=>cluster.values[Math.min(cluster.values.length-1,Math.max(0,index))];
+      cluster.p75Dbz=q(Math.floor(cluster.values.length*.75));
+      cluster.p90Dbz=q(Math.floor(cluster.values.length*.90));
+      cluster.core50=cluster.values.filter(v=>v>=50).length;
+      cluster.core55=cluster.values.filter(v=>v>=55).length;
+      cluster.core60=cluster.values.filter(v=>v>=60).length;
+
+      const xs=cluster.points.map(p=>p.x);
+      const ys=cluster.points.map(p=>p.y);
+      const width=Math.max(...xs)-Math.min(...xs)+step;
+      const height=Math.max(...ys)-Math.min(...ys)+step;
+      cluster.boundingArea=Math.max(1,width*height);
+      cluster.compactness=Math.min(1,(cluster.n*step*step)/cluster.boundingArea);
+    }
+
+    return clusters
+      .filter(c=>c.n>=(strict?10:8) && c.p75Dbz>=baseThreshold)
+      .sort((a,b)=>
+        (b.maxDbz+b.p90Dbz+b.core55*.4)-
+        (a.maxDbz+a.p90Dbz+a.core55*.4)
+      )
+      .slice(0,8);
   }
 
   function matchPrevious(current,previous){
@@ -619,7 +682,7 @@ button.primary{background:#38bdf8;color:#062033;border-color:transparent;font-we
       if(bins[i%16]>0){run++;best=Math.max(best,run)}else run=0;
     }
     const empty=bins.filter(v=>v===0).length;
-    return best>=5&&best<=11&&empty>=4&&cluster.max>=210;
+    return best>=5&&best<=11&&empty>=4&&cluster.maxDbz>=210;
   }
 
   async function analyseVisible(){
@@ -660,71 +723,97 @@ button.primary{background:#38bdf8;color:#062033;border-color:transparent;font-we
 
         const strict=sensitivityEl.value==='veryStrict';
 
-        // Lightning is the easiest convective signal to trigger.
-        const lightningDetected =
-          cluster.max >= (strict ? 214 : 204) &&
-          cluster.n >= (strict ? 11 : 9);
+        const olderMatch=older || null;
+        const persistent=!!olderMatch;
+        const movementPixels=persistent
+          ? Math.hypot(cluster.x-olderMatch.x,cluster.y-olderMatch.y)
+          : null;
 
-        // Hail levels use both peak intensity and core size.
-        // Small hail is intentionally reachable, but still needs persistence
-        // in an earlier radar frame to avoid one-frame noise.
+        // Reflectivity can indicate an intense convective core, but not prove lightning.
+        const lightningDetected =
+          cluster.maxDbz >= (strict?50:47) &&
+          cluster.p90Dbz >= (strict?47:45) &&
+          cluster.n >= (strict?14:11);
+
+        // Hail categories are conservative reflectivity-only signals.
+        // Dual-polarisation data would be required to confirm hail or determine size.
+        const smallHail =
+          persistent &&
+          cluster.maxDbz >= (strict?57:55) &&
+          cluster.p90Dbz >= (strict?52:50) &&
+          cluster.core50 >= (strict?12:8) &&
+          olderMatch.maxDbz >= (strict?54:52) &&
+          olderMatch.p90Dbz >= (strict?49:47);
+
+        const mediumHail =
+          persistent &&
+          cluster.maxDbz >= (strict?62:60) &&
+          cluster.p90Dbz >= (strict?56:54) &&
+          cluster.core55 >= (strict?9:6) &&
+          olderMatch.maxDbz >= (strict?59:57);
+
+        const largeHail =
+          persistent &&
+          cluster.maxDbz >= 65 &&
+          cluster.p90Dbz >= (strict?61:59) &&
+          cluster.core60 >= (strict?7:4) &&
+          olderMatch.maxDbz >= (strict?62:60);
+
         const hailType =
-          cluster.max >= (strict ? 248 : 242) && cluster.n >= 17 ? 'Large hail' :
-          cluster.max >= (strict ? 232 : 224) && cluster.n >= 13 ? 'Medium hail' :
-          cluster.max >= (strict ? 218 : 210) && cluster.n >= 10 ? 'Small hail' :
+          largeHail ? 'Large hail signal signal' :
+          mediumHail ? 'Medium hail signal signal' :
+          smallHail ? 'Small hail signal signal' :
           null;
 
-        const hailPersistent =
-          !!hailType &&
-          !!older &&
-          older.max >= (
-            hailType==='Large hail' ? (strict ? 230 : 224) :
-            hailType==='Medium hail' ? (strict ? 216 : 208) :
-            (strict ? 204 : 196)
-          ) &&
-          older.n >= (
-            hailType==='Large hail' ? 11 :
-            hailType==='Medium hail' ? 8 :
-            6
-          );
+        // Reflectivity-only hook candidate. This is deliberately strict and
+        // never presented as a confirmed tornado warning.
+        const hook =
+          persistent &&
+          hasHookShape(cluster) &&
+          cluster.maxDbz >= (strict?55:52) &&
+          cluster.p90Dbz >= (strict?49:47) &&
+          cluster.compactness >= .18 &&
+          movementPixels!==null &&
+          movementPixels<=55;
 
-        const hook=hasHookShape(cluster) &&
-          !!older &&
-          older.max >= (strict ? 220 : 212) &&
-          cluster.n >= 12;
-
-        if(!lightningDetected && !hailPersistent && !hook) continue;
+        if(!lightningDetected && !hailType && !hook) continue;
 
         const hazards=[];
-        if(lightningDetected) hazards.push('Lightning');
-        if(hailPersistent && hailType) hazards.push(hailType);
-        if(hook) hazards.push('Tornado candidate');
+        if(lightningDetected) hazards.push('Lightning likelihood');
+        if(hailType) hazards.push(hailType);
+        if(hook) hazards.push('Hook echo candidate');
 
-        // One polygon only: colour and label represent the highest hazard.
+        const persistenceScore=persistent?25:0;
+        const intensityScore=Math.min(40,Math.max(0,(cluster.maxDbz-45)*2));
+        const coreScore=Math.min(25,cluster.core50*1.5);
+        const structureScore=Math.min(10,cluster.compactness*20);
+        const confidence=Math.round(Math.min(95,persistenceScore+intensityScore+coreScore+structureScore));
+
+        // One polygon only: colour and label represent the highest detected signal.
         const primary =
           hook ? {
-            label:'Tornado candidate',
+            label:'Hook echo candidate',
             colour:'#ff4fd8',
-            padding:14
-          } :
-          hailPersistent && hailType==='Large hail' ? {
-            label:'Large hail',
-            colour:'#ef4444',
             padding:13
           } :
-          hailPersistent && hailType==='Medium hail' ? {
-            label:'Medium hail',
-            colour:'#f97316',
+          largeHail ? {
+            label:'Large hail signal signal',
+            colour:'#ef4444',
             padding:12
           } :
-          hailPersistent && hailType==='Small hail' ? {
-            label:'Small hail',
-            colour:'#22c55e',
+          mediumHail ? {
+            label:'Medium hail signal signal',
+            colour:'#f97316',
             padding:11
-          } : {
-            label:'Lightning',
-            colour:'#facc15',
+          } :
+          smallHail ? {
+            label:'Small hail signal signal',
+            colour:'#22c55e',
             padding:10
+          } : {
+            label:'Lightning likelihood',
+            colour:'#facc15',
+            padding:9
           };
 
         const warningPoints=createClusterPolygon(
@@ -759,6 +848,8 @@ button.primary{background:#38bdf8;color:#062033;border-color:transparent;font-we
               <span class="badge experimental">EXPERIMENTAL</span><br><br>
               <b>Detected signals:</b><br>
               ${hazards.map(h=>`• ${h}`).join('<br>')}<br><br>
+              <b>Maximum reflectivity:</b> ${cluster.maxDbz} dBZ<br>
+              <b>Core confidence:</b> ${confidence}%<br><br>
               Finding nearby places…
             </div>
           `).openPopup();
@@ -770,9 +861,12 @@ button.primary{background:#38bdf8;color:#062033;border-color:transparent;font-we
               <span class="badge experimental">NOT OFFICIAL</span><br><br>
               <b>Detected signals:</b><br>
               ${hazards.map(h=>`• ${h}`).join('<br>')}<br><br>
+              <b>Maximum reflectivity:</b> ${cluster.maxDbz} dBZ<br>
+              <b>90th-percentile core:</b> ${cluster.p90Dbz} dBZ<br>
+              <b>Core confidence:</b> ${confidence}%<br><br>
               <b>Nearby places:</b><br>
               ${places.length?places.map(p=>`• ${p}`).join('<br>'):'No nearby named places returned.'}<br><br>
-              The outline follows the detected radar core. It is not an official warning polygon.
+              The outline follows a persistent calibrated-reflectivity core. Reflectivity alone cannot confirm hail, lightning or tornadoes.
             </div>
           `);
         });

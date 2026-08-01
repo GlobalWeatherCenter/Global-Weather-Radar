@@ -3043,6 +3043,20 @@ const basemapEl=document.getElementById('basemap');
   }
 
   function showFrame(i){
+    // V84: USA Site Radar mode must NEVER display the global RainViewer layer.
+    if(typeof gwrSiteMode!=='undefined' && gwrSiteMode){
+      if(radarNextLayer && map.hasLayer(radarNextLayer)){
+        map.removeLayer(radarNextLayer);
+      }
+      radarNextLayer=null;
+
+      if(radarLayer && map.hasLayer(radarLayer)){
+        map.removeLayer(radarLayer);
+      }
+      radarLayer=null;
+      return;
+    }
+
     if(!frames.length)return;
 
     const newIndex=Math.max(0,Math.min(i,frames.length-1));
@@ -3135,6 +3149,11 @@ const basemapEl=document.getElementById('basemap');
 
   applyRadarColour();
 function startAnimation(){
+    if(typeof gwrSiteMode!=='undefined' && gwrSiteMode){
+      clearInterval(timer);
+      return;
+    }
+
     clearInterval(timer);
     timer=setInterval(()=>showFrame(frameIndex>=frames.length-1?0:frameIndex+1),1100);
   }
@@ -3160,6 +3179,27 @@ function startAnimation(){
   }
 
   async function loadRadar(){
+    // V84: do not even request/activate global radar while USA Site Radar is selected.
+    if(typeof gwrSiteMode!=='undefined' && gwrSiteMode){
+      clearInterval(timer);
+
+      if(radarNextLayer && map.hasLayer(radarNextLayer)){
+        map.removeLayer(radarNextLayer);
+      }
+      radarNextLayer=null;
+
+      if(radarLayer && map.hasLayer(radarLayer)){
+        map.removeLayer(radarLayer);
+      }
+      radarLayer=null;
+
+      const siteStatus=document.getElementById('status');
+      if(siteStatus){
+        siteStatus.textContent='USA NEXRAD — tap a radar circle';
+      }
+      return;
+    }
+
     clearInterval(timer);
 
     // If radar is already visible, leave it on-screen while refreshing.
@@ -3729,6 +3769,12 @@ function startAnimation(){
   }
 
   document.getElementById('play').addEventListener('click',event=>{
+    if(typeof gwrSiteMode!=='undefined' && gwrSiteMode){
+      clearInterval(timer);
+      event.target.textContent='Play';
+      return;
+    }
+
     playing=!playing;
     event.target.textContent=playing?'Pause':'Play';
     if(playing)startAnimation();else clearInterval(timer);
@@ -4384,6 +4430,7 @@ function startAnimation(){
     gwrSourceControl.value='nexrad';
     gwrSourceControl.addEventListener('change',()=>{
       if(gwrSourceControl.value==='nexrad'){
+        // Hard-disable the global RainViewer radar before doing anything else.
         gwrSiteMode=true;
 
         clearInterval(timer);
@@ -4402,6 +4449,7 @@ function startAnimation(){
         const st=document.getElementById('status');
         if(st) st.textContent='USA NEXRAD — tap a radar circle';
       }else{
+        // Global radar is allowed again only after this flag is cleared.
         gwrSiteMode=false;
         gwrClearSingleSiteRadar();
         if(map.hasLayer(gwrSiteLayer)) map.removeLayer(gwrSiteLayer);
@@ -4450,6 +4498,28 @@ function startAnimation(){
     const st=document.getElementById('status');
     if(st) st.textContent='USA NEXRAD — tap a radar circle';
   },0);
+
+
+  function gwrKillGlobalRadarDuringStartup(){
+    if(!gwrSiteMode) return;
+
+    clearInterval(timer);
+
+    if(radarNextLayer && map.hasLayer(radarNextLayer)){
+      map.removeLayer(radarNextLayer);
+    }
+    radarNextLayer=null;
+
+    if(radarLayer && map.hasLayer(radarLayer)){
+      map.removeLayer(radarLayer);
+    }
+    radarLayer=null;
+  }
+
+  // Kill any old RainViewer request/layer that completes just after page startup.
+  [0,100,250,500,1000,2000].forEach(delay=>{
+    setTimeout(gwrKillGlobalRadarDuringStartup,delay);
+  });
 
 </script>
 

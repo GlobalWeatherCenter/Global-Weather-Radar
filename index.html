@@ -365,21 +365,64 @@ button.primary{background:#38bdf8;color:#062033;border-color:transparent;font-we
 }
 #fixedDrawButton.active{background:#2563eb}
 #fixedDrawPanel{
-  position:absolute;left:52px;top:0;width:220px;padding:11px;
-  border:1px solid rgba(255,255,255,.2);border-radius:12px;
-  background:rgba(9,17,31,.97);color:#fff;
+  position:absolute;
+  left:54px;
+  top:0;
+  width:226px;
+  padding:12px;
+  border:1px solid rgba(255,255,255,.2);
+  border-radius:12px;
+  background:rgba(9,17,31,.97);
+  color:#fff;
   box-shadow:0 8px 28px rgba(0,0,0,.42);
 }
 #fixedDrawPanel[hidden]{display:none!important}
-.fd-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.fd-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:11px;
+}
 .fd-head strong{font-size:13px}
 .fd-x{width:29px;height:29px;border:1px solid rgba(255,255,255,.2);border-radius:8px;background:#18263c;color:#fff;font-size:20px}
-.fd-colours{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:10px}
-.fd-colour{width:27px;height:27px;border-radius:50%;border:3px solid rgba(255,255,255,.28);padding:0}
+.fd-colours{
+  display:grid;
+  grid-template-columns:repeat(6,27px);
+  justify-content:space-between;
+  align-items:center;
+  gap:7px;
+  margin-bottom:11px;
+}
+.fd-colour{
+  width:27px;
+  height:27px;
+  border-radius:50%;
+  border:3px solid rgba(255,255,255,.28);
+  padding:0;
+  margin:0;
+  appearance:none;
+  -webkit-appearance:none;
+}
 .fd-colour.selected{outline:2px solid #fff;outline-offset:2px}
-.fd-custom{width:34px;height:28px;border:0;padding:0;background:transparent}
-.fd-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px}
-.fd-actions button{border:1px solid rgba(255,255,255,.18);border-radius:8px;padding:8px;background:#19263d;color:#fff;font-weight:700}
+.fd-actions{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+  align-items:stretch;
+}
+.fd-actions button{
+  height:36px;
+  border:1px solid rgba(255,255,255,.18);
+  border-radius:8px;
+  padding:0 10px;
+  background:#19263d;
+  color:#fff;
+  font-weight:700;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
 .fd-actions .fd-done{background:#2563eb}
 .fd-help{font-size:11px;color:#bdc8d8;line-height:1.35;margin-top:9px}
 #map.fixed-draw-active{touch-action:none!important;cursor:crosshair!important}
@@ -438,8 +481,7 @@ button.primary{background:#38bdf8;color:#062033;border-color:transparent;font-we
       <button class="fd-colour" data-colour="#38bdf8" style="background:#38bdf8"></button>
       <button class="fd-colour" data-colour="#ff4fd8" style="background:#ff4fd8"></button>
       <button class="fd-colour" data-colour="#ffffff" style="background:#ffffff"></button>
-      <input class="fd-custom" type="color" value="#ff2d2d" aria-label="Custom colour">
-    </div>
+</div>
     <div class="fd-actions">
       <button class="fd-clear" type="button">Clear</button>
       <button class="fd-done" type="button">Done</button>
@@ -1177,7 +1219,6 @@ button.primary{background:#38bdf8;color:#062033;border-color:transparent;font-we
   const clearBtn=document.querySelector('.fd-clear');
   const doneBtn=document.querySelector('.fd-done');
   const closeBtn=document.querySelector('.fd-x');
-  const custom=document.querySelector('.fd-custom');
   if(!mapEl||!button) return;
 
   if(!map.getPane('drawingPane')){
@@ -1214,16 +1255,11 @@ button.primary{background:#38bdf8;color:#062033;border-color:transparent;font-we
   document.querySelectorAll('.fd-colour').forEach(b=>{
     b.addEventListener('click',()=>{
       colour=b.dataset.colour;
-      custom.value=colour;
       document.querySelectorAll('.fd-colour').forEach(x=>x.classList.remove('selected'));
       b.classList.add('selected');
     });
   });
-  custom.addEventListener('input',()=>{
-    colour=custom.value;
-    document.querySelectorAll('.fd-colour').forEach(x=>x.classList.remove('selected'));
-  });
-  clearBtn.addEventListener('click',()=>layer.clearLayers());
+clearBtn.addEventListener('click',()=>layer.clearLayers());
   doneBtn.addEventListener('click',()=>mode(false));
   closeBtn.addEventListener('click',()=>{layer.clearLayers();mode(false)});
 

@@ -3067,6 +3067,9 @@ button[aria-label="Legend"],
       );
 
       marker.on('click',()=>{
+        gwrSingleSiteMode=true;
+        gwrHardRemoveGlobalRadar();
+
         gwrSelectedDotSite=site.id;
         gwrRenderRadarDots();
 
@@ -3118,6 +3121,7 @@ const basemapEl=document.getElementById('basemap');
   const sensitivityEl=document.getElementById('sensitivity');
 
   let frames=[],host='',frameIndex=0,radarLayer=null,radarNextLayer=null,timer=null,playing=true,radarTransitionToken=0;
+  let gwrSingleSiteMode=false;
   const warningLayer=L.layerGroup().addTo(map);
 
   const legend=L.control({position:'bottomleft'});
@@ -3213,6 +3217,11 @@ const basemapEl=document.getElementById('basemap');
   }
 
   function showFrame(i){
+    if(gwrSingleSiteMode){
+      gwrHardRemoveGlobalRadar();
+      return;
+    }
+
     if(!frames.length)return;
 
     const newIndex=Math.max(0,Math.min(i,frames.length-1));
@@ -3391,16 +3400,43 @@ const basemapEl=document.getElementById('basemap');
     }
   }
 
-  function gwrPauseGlobalForNexrad(){
+
+  function gwrHardRemoveGlobalRadar(){
     clearInterval(timer);
     playing=false;
-    const playControl=document.getElementById('play');
-    if(playControl) playControl.textContent='Play';
 
-    if(radarNextLayer && map.hasLayer(radarNextLayer)) map.removeLayer(radarNextLayer);
+    // Remove the tracked RainViewer layers.
+    if(radarNextLayer && map.hasLayer(radarNextLayer)){
+      try{map.removeLayer(radarNextLayer)}catch(error){}
+    }
     radarNextLayer=null;
 
-    if(radarLayer && map.hasLayer(radarLayer)) map.removeLayer(radarLayer);
+    if(radarLayer && map.hasLayer(radarLayer)){
+      try{map.removeLayer(radarLayer)}catch(error){}
+    }
+    radarLayer=null;
+
+    // Remove ANY orphaned RainViewer tile layer, even if an old async
+    // request created it after the normal references were cleared.
+    map.eachLayer(layer=>{
+      const url=String(layer?._url || '');
+      const attribution=String(layer?.options?.attribution || '').toLowerCase();
+
+      if(
+        url.includes('rainviewer.com') ||
+        attribution.includes('rainviewer')
+      ){
+        try{map.removeLayer(layer)}catch(error){}
+      }
+    });
+
+    const playControl=document.getElementById('play');
+    if(playControl) playControl.textContent='Play';
+  }
+
+  function gwrPauseGlobalForNexrad(){
+    gwrSingleSiteMode=true;
+    gwrHardRemoveGlobalRadar();
   }
 
   function gwrWaitForLevel2Module(timeoutMs=12000){
@@ -3612,6 +3648,9 @@ const basemapEl=document.getElementById('basemap');
   }
 
   function gwrShowOriginalNexradFallback(siteId,product,station,zoomToSite){
+    gwrSingleSiteMode=true;
+    gwrHardRemoveGlobalRadar();
+
     gwrRadarMode='nexrad';
     radarSourceEl.value='nexrad';
     gwrPauseGlobalForNexrad();
@@ -3657,6 +3696,9 @@ const basemapEl=document.getElementById('basemap');
   }
 
   async function gwrShowLevel2Radar(siteId,product,station,zoomToSite){
+    gwrSingleSiteMode=true;
+    gwrHardRemoveGlobalRadar();
+
     const fullSiteId=siteId.length===3 ? `K${siteId}` : siteId;
 
     gwrRadarMode='nexrad';
@@ -3832,11 +3874,19 @@ const basemapEl=document.getElementById('basemap');
   gwrRenderRadarDots();
   map.setView([38.5,-97.5],4,{animate:false});
   radarSourceEl.value='nexrad';
+  gwrSingleSiteMode=true;
   gwrPauseGlobalForNexrad();
+
+  [0,100,250,500,1000,2000,4000,7000,10000].forEach(delay=>{
+    setTimeout(()=>{
+      if(gwrSingleSiteMode) gwrHardRemoveGlobalRadar();
+    },delay);
+  });
   status.textContent='USA NEXRAD RAW LEVEL II — tap a radar tower dot';
 
 
   function gwrRestoreGlobalRadar(){
+    gwrSingleSiteMode=false;
     gwrRadarMode='global';
     radarSourceEl.value='global';
     gwrNexradPanel.classList.remove('open');
@@ -3861,11 +3911,14 @@ const basemapEl=document.getElementById('basemap');
 
   radarSourceEl.addEventListener('change',async()=>{
     if(radarSourceEl.value==='nexrad'){
+      gwrSingleSiteMode=true;
+      gwrHardRemoveGlobalRadar();
       gwrNexradPanel.classList.add('open');
       gwrNexradPanel.setAttribute('aria-hidden','false');
       if(!gwrNexradStations.length) await gwrLoadNexradStations();
       gwrShowNexradRadar(true);
     }else{
+      gwrSingleSiteMode=false;
       gwrRestoreGlobalRadar();
     }
   });
@@ -3886,6 +3939,11 @@ const basemapEl=document.getElementById('basemap');
   gwrLoadNexradStations();
 
 function startAnimation(){
+    if(gwrSingleSiteMode){
+      gwrHardRemoveGlobalRadar();
+      return;
+    }
+
     clearInterval(timer);
     timer=setInterval(()=>showFrame(frameIndex>=frames.length-1?0:frameIndex+1),1100);
   }
@@ -3911,6 +3969,11 @@ function startAnimation(){
   }
 
   async function loadRadar(){
+    if(gwrSingleSiteMode){
+      gwrHardRemoveGlobalRadar();
+      return;
+    }
+
     clearInterval(timer);
 
     // If radar is already visible, leave it on-screen while refreshing.

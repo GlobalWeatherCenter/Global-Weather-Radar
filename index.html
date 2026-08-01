@@ -2749,7 +2749,7 @@ button[aria-label="Legend"],
   let gwrSelectedSiteId='';
   let gwrSingleSiteRadarLayer=null;
   let gwrSiteMode=true;
-  let gwrSiteProductCode='N0B';
+  let gwrSiteProductCode='SR_BREF';
 
   function gwrRenderBuiltInSites(){
     gwrSiteLayer.clearLayers();
@@ -2774,14 +2774,6 @@ button[aria-label="Legend"],
 
       marker.on('click',()=>{
         gwrSelectedSiteId=site.id;
-
-        if(gwrReflectivityBtn){
-          gwrReflectivityBtn.classList.toggle('active',gwrSiteProductCode==='N0B');
-        }
-        if(gwrVelocityBtn){
-          gwrVelocityBtn.classList.toggle('active',gwrSiteProductCode==='N0U');
-        }
-
         gwrRenderBuiltInSites();
         gwrLoadSingleSite(site,true);
       });
@@ -2791,24 +2783,10 @@ button[aria-label="Legend"],
   }
 
   function gwrClearSingleSiteRadar(){
-    // Remove the tracked layer.
     if(gwrSingleSiteRadarLayer && map.hasLayer(gwrSingleSiteRadarLayer)){
       map.removeLayer(gwrSingleSiteRadarLayer);
     }
     gwrSingleSiteRadarLayer=null;
-
-    // Also remove any orphaned IEM single-site radar layer.
-    map.eachLayer(layer=>{
-      const url=String(layer?._url || '');
-      const attribution=String(layer?.options?.attribution || '').toLowerCase();
-
-      if(
-        url.includes('mesonet.agron.iastate.edu/cgi-bin/wms/nexrad/ridge.cgi') ||
-        attribution.includes('single-site nexrad')
-      ){
-        try{ map.removeLayer(layer); }catch(error){}
-      }
-    });
   }
 
   
@@ -2839,16 +2817,14 @@ button[aria-label="Legend"],
   }
 
 function gwrLoadSingleSite(site,zoomToSite){
-    const product=gwrSiteProductCode || 'N0B';
-    const label=product==='N0U'?'Hi-Res Velocity (N0U)':'Hi-Res Reflectivity (N0B)';
+    const product=gwrSiteProductCode || 'SR_BREF';
+    const label=product==='SR_BVEL'
+      ? 'Super-Res Velocity (SR_BVEL)'
+      : 'Super-Res Reflectivity (SR_BREF)';
 
     gwrSiteMode=true;
-
-    // Remove every RainViewer layer, including orphaned layers created by old startup code.
     gwrPurgeGlobalRainViewer();
 
-    // Single-site products already have their own proper NEXRAD colour tables.
-    // Do NOT apply the Global Radar CSS filter to reflectivity or velocity.
     const siteRadarPane=map.getPane('radarPane');
     if(siteRadarPane){
       siteRadarPane.style.filter='none';
@@ -2856,54 +2832,108 @@ function gwrLoadSingleSite(site,zoomToSite){
 
     gwrClearSingleSiteRadar();
 
-    const layerName=`ridge::${site.id}-${product}-0`;
-    const url=`https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0/${layerName}/{z}/{x}/{y}.png?gwr=${Date.now()}`;
+    // NOAA/NCEP OpenGeo uses the full four-character NEXRAD ID
+    // as the GeoServer workspace, e.g. TLX -> KTLX -> /geoserver/ktlx/wms.
+    const fullSiteId=site.id.length===3 ? `K${site.id}` : site.id;
+    const workspace=fullSiteId.toLowerCase();
+    const noaaWms=`https://opengeo.ncep.noaa.gov/geoserver/${workspace}/wms`;
 
     // Official warnings are automatic in single-site radar mode.
-    gwrEnableAutoNwsWarnings();
+    if(typeof gwrEnableAutoNwsWarnings==='function'){
+      gwrEnableAutoNwsWarnings();
+    }
 
-    // IEM documents this as standard Z/X/Y latest individual-radar imagery.
-    gwrSingleSiteRadarLayer=L.tileLayer(url,{
+    // Official NOAA/NCEP product:
+    // SR_BREF = Super Resolution Base Reflectivity
+    // SR_BVEL = Super Resolution Base Radial Velocity
+    gwrSingleSiteRadarLayer=L.tileLayer.wms(noaaWms,{
+      layers:product,
+      styles:'',
+      format:'image/png',
+      transparent:true,
+      version:'1.1.1',
       tileSize:256,
       minZoom:3,
       maxZoom:18,
-      maxNativeZoom:12,
       keepBuffer:6,
-      updateWhenZooming:true,
-      updateWhenIdle:false,
+      updateWhenZooming:false,
+      updateWhenIdle:true,
       opacity:Number(document.getElementById('opacity')?.value || .72),
       pane:'radarPane',
-      attribution:'Single-site NEXRAD © Iowa Environmental Mesonet'
+      attribution:'Radar © NOAA / NCEP'
     }).addTo(map);
 
-    // Force visible tiles immediately.
-    try{
-      if(typeof gwrSingleSiteRadarLayer._update==='function'){
-        gwrSingleSiteRadarLayer._update();
-      }
-    }catch(error){}
+    // Ensure the actual requested product is visible in the tile request.
+    gwrSingleSiteRadarLayer.setParams({
+      layers:product,
+      gwr:Date.now()
+    },false);
+
+    let tileErrors=0;
+    let loaded=false;
 
     gwrSingleSiteRadarLayer.on('loading',()=>{
       const st=document.getElementById('status');
-      if(st) st.textContent=`USA NEXRAD: ${site.id} — loading ${label}…`;
+      if(st) st.textContent=`${fullSiteId} — loading ${label} from NOAA…`;
     });
 
     gwrSingleSiteRadarLayer.on('load',()=>{
+      loaded=true;
       const st=document.getElementById('status');
-      if(st) st.textContent=`USA NEXRAD: ${site.id} — ${label}`;
+      if(st) st.textContent=`${fullSiteId} — ${label}`;
     });
 
     gwrSingleSiteRadarLayer.on('tileerror',()=>{
-      const st=document.getElementById('status');
-      if(st) st.textContent=`${site.id} ${label} failed to load.`;
+      tileErrors++;
+
+      // If NOAA OpenGeo is temporarily unavailable for this site/product,
+      // fall back to IEM's current single-site Level III feed.
+      if(!loaded && tileErrors===6){
+        try{
+          if(gwrSingleSiteRadarLayer && map.hasLayer(gwrSingleSiteRadarLayer)){
+            map.removeLayer(gwrSingleSiteRadarLayer);
+          }
+        }catch(error){}
+
+        const iemProduct=product==='SR_BVEL' ? 'N0U' : 'N0B';
+        const iemUrl=
+          `https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0/` +
+          `ridge::${site.id}-${iemProduct}-0/{z}/{x}/{y}.png`;
+
+        gwrSingleSiteRadarLayer=L.tileLayer(iemUrl,{
+          tileSize:256,
+          minZoom:3,
+          maxZoom:18,
+          maxNativeZoom:12,
+          keepBuffer:6,
+          updateWhenZooming:false,
+          updateWhenIdle:true,
+          opacity:Number(document.getElementById('opacity')?.value || .72),
+          pane:'radarPane',
+          attribution:'Radar fallback © Iowa Environmental Mesonet'
+        }).addTo(map);
+
+        const st=document.getElementById('status');
+        if(st) st.textContent=`${fullSiteId} — NOAA unavailable, trying ${iemProduct} fallback…`;
+
+        gwrSingleSiteRadarLayer.on('load',()=>{
+          const s=document.getElementById('status');
+          if(s) s.textContent=`${fullSiteId} — ${label} (IEM fallback)`;
+        });
+
+        gwrSingleSiteRadarLayer.on('tileerror',()=>{
+          const s=document.getElementById('status');
+          if(s) s.textContent=`${fullSiteId} — ${label} failed from both NOAA and IEM.`;
+        });
+      }
     });
 
     if(zoomToSite){
-      map.setView([site.lat,site.lon],8);
+      map.setView([site.lat,site.lon],8,{animate:false});
     }
 
     const st=document.getElementById('status');
-    if(st) st.textContent=`USA NEXRAD: ${site.id} — ${label}`;
+    if(st) st.textContent=`${fullSiteId} — loading ${label} from NOAA…`;
   }
 
   // Render dots synchronously: no API request, no delay.
@@ -4654,15 +4684,15 @@ function startAnimation(){
   }
 
   function gwrSetProduct(product){
-    if(product!=='N0B' && product!=='N0U') return;
+    if(product!=='SR_BREF' && product!=='SR_BVEL') return;
 
     gwrSiteProductCode=product;
 
     if(gwrReflectivityBtn){
-      gwrReflectivityBtn.classList.toggle('active',product==='N0B');
+      gwrReflectivityBtn.classList.toggle('active',product==='SR_BREF');
     }
     if(gwrVelocityBtn){
-      gwrVelocityBtn.classList.toggle('active',product==='N0U');
+      gwrVelocityBtn.classList.toggle('active',product==='SR_BVEL');
     }
 
     if(!gwrSelectedSiteId){
@@ -4674,60 +4704,21 @@ function startAnimation(){
     const site=gwrBuiltInSites.find(s=>s.id===gwrSelectedSiteId);
     if(!site) return;
 
-    const st=document.getElementById('status');
-    const label=product==='N0U'?'Hi-Res Velocity':'Hi-Res Reflectivity';
-    if(st) st.textContent=`Switching ${site.id} to ${label}…`;
-
-    // Remove the old product completely.
+    // Different NOAA layer name, same radar workspace.
     gwrClearSingleSiteRadar();
     gwrPurgeGlobalRainViewer();
-
-    // IMPORTANT:
-    // A newly selected radar works because map.setView() causes Leaflet to
-    // calculate a fresh visible tile set. Do the same on product swaps.
-    const currentZoom=map.getZoom();
-    const targetZoom=Math.max(3,Math.min(18,currentZoom));
-
-    // Move one zoom step momentarily so Leaflet cannot reuse the old product's
-    // existing tile grid, then return to the user's zoom immediately.
-    const refreshZoom=targetZoom < 18 ? targetZoom+1 : targetZoom-1;
-
-    map.setView([site.lat,site.lon],refreshZoom,{animate:false});
-
-    requestAnimationFrame(()=>{
-      // Create the chosen product while the map is at a genuinely new tile grid.
-      gwrLoadSingleSite(site,false);
-
-      requestAnimationFrame(()=>{
-        map.setView([site.lat,site.lon],targetZoom,{animate:false});
-
-        if(gwrSingleSiteRadarLayer){
-          // Hard tile reset for Safari/iPad.
-          try{
-            if(typeof gwrSingleSiteRadarLayer._removeAllTiles==='function'){
-              gwrSingleSiteRadarLayer._removeAllTiles();
-            }
-            if(typeof gwrSingleSiteRadarLayer._update==='function'){
-              gwrSingleSiteRadarLayer._update();
-            }
-            gwrSingleSiteRadarLayer.redraw();
-          }catch(error){
-            console.warn('Radar tile refresh fallback',error);
-          }
-        }
-      });
-    });
+    gwrLoadSingleSite(site,false);
   }
 
   if(gwrReflectivityBtn){
     gwrReflectivityBtn.addEventListener('click',()=>{
-      gwrSetProduct('N0B');
+      gwrSetProduct('SR_BREF');
     });
   }
 
   if(gwrVelocityBtn){
     gwrVelocityBtn.addEventListener('click',()=>{
-      gwrSetProduct('N0U');
+      gwrSetProduct('SR_BVEL');
     });
   }
 

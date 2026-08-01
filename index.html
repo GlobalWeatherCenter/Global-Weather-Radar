@@ -2790,7 +2790,7 @@ button[aria-label="Legend"],
 
 function gwrLoadSingleSite(site,zoomToSite){
     const product=document.getElementById('gwrSiteProduct')?.value || 'N0B';
-    const label=product==='N0U'?'Hi-Res Velocity':'Hi-Res Reflectivity';
+    const label=product==='N0U'?'Hi-Res Velocity (N0U)':'Hi-Res Reflectivity (N0B)';
 
     gwrSiteMode=true;
 
@@ -2806,24 +2806,42 @@ function gwrLoadSingleSite(site,zoomToSite){
 
     gwrClearSingleSiteRadar();
 
-    const url=`https://mesonet.agron.iastate.edu/cgi-bin/wms/nexrad/ridge.cgi?sector=${encodeURIComponent(site.id)}&prod=${encodeURIComponent(product)}&cb=${Date.now()}`;
+    // Use IEM's native Tile Map Service for the latest individual radar image.
+    // N0B = 8-bit high-resolution base reflectivity
+    // N0U = 8-bit base velocity
+    const layerName=`ridge::${site.id}-${product}-0`;
+    const url=`https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0/${layerName}/{z}/{x}/{y}.png`;
 
     // Official warnings are automatic in single-site radar mode.
     gwrEnableAutoNwsWarnings();
 
-    gwrSingleSiteRadarLayer=L.tileLayer.wms(url,{
-      layers:'single',
-      format:'image/png',
-      transparent:true,
-      version:'1.1.1',
-      tileSize:512,
+    gwrSingleSiteRadarLayer=L.tileLayer(url,{
+      tileSize:256,
       minZoom:3,
       maxZoom:18,
+      maxNativeZoom:12,
       keepBuffer:8,
+      updateWhenZooming:false,
+      updateWhenIdle:true,
       opacity:Number(document.getElementById('opacity')?.value || .72),
       pane:'radarPane',
       attribution:'Single-site NEXRAD © Iowa Environmental Mesonet'
     }).addTo(map);
+
+    gwrSingleSiteRadarLayer.on('loading',()=>{
+      const st=document.getElementById('status');
+      if(st) st.textContent=`USA NEXRAD: ${site.id} — loading ${label}…`;
+    });
+
+    gwrSingleSiteRadarLayer.on('load',()=>{
+      const st=document.getElementById('status');
+      if(st) st.textContent=`USA NEXRAD: ${site.id} — ${label}`;
+    });
+
+    gwrSingleSiteRadarLayer.on('tileerror',()=>{
+      const st=document.getElementById('status');
+      if(st) st.textContent=`${site.id} ${label} unavailable right now — try another site.`;
+    });
 
     if(zoomToSite){
       map.setView([site.lat,site.lon],8);
